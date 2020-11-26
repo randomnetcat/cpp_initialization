@@ -3,4 +3,7 @@ digraph initialization {
     start -> is_braced
     is_braced [label="Is the initializer in braces?\n[dcl.init]/16.1", shape=diamond]
     is_braced -> list_initialization [label="Yes"]
+    is_braced -> is_dest_reference [label="No"]
+    is_dest_reference [label="Is the destination type a reference type?\n[dcl.init]/16.2", shape=diamond]
+    is_dest_reference -> reference_initialization [label="Yes"]
 }

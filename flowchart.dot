@@ -6,4 +6,8 @@ digraph initialization {
     is_braced -> is_dest_reference [label="No"]
     is_dest_reference [label="Is the destination type a reference type?\n[dcl.init]/16.2", shape=diamond]
     is_dest_reference -> reference_initialization [label="Yes"]
+    is_dest_reference -> is_char_arr_init [label="No"]
+    is_char_arr_init [label="Is the destination type a char[] or a char*_t[]?\n[dcl.init]/16.3", shape=diamond]
+    is_char_arr_init -> is_char_arr_literal_init [label="Yes"]
+    is_char_arr_literal_init [label="Is the initializer a string literal?\n[dcl.init]/16.3", shape=diamond]
 }

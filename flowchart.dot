@@ -15,4 +15,8 @@ digraph initialization {
     
     is_char_arr_literal_init [label="Is the initializer a string literal?\n[dcl.init]/16.3", shape=diamond]
         is_char_arr_literal_init -> string_literal_initialization [label="Yes"]
+        is_char_arr_literal_init -> is_initializer_empty_parens [label="No"]
+
+    is_initializer_empty_parens [label="Is the initializer \"()\"?\n[dcl.init]/16.4", shape=diamond]
+        is_initializer_empty_parens -> value_initialization [label="Yes"]
 }

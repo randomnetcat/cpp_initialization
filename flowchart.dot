@@ -24,7 +24,7 @@ digraph initialization {
     is_dest_array[label="Is the destination type an array?\n[dcl.init]/16.5", shape=diamond]
         is_dest_array -> array_initialization_head [label="Yes"]
 
-    subgraph cluster_array_initialization {
+    subgraph array_initialization {
         array_initialization_head [label="Initialization as follows:\n[dcl.init]/16.5", shape=box]
             array_initialization_head -> array_k_definition
         

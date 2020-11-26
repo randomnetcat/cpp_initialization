@@ -1,3 +1,6 @@
 digraph initialization {
     start [label="So you want to initialize something?\n[dcl.init]/16", style=filled, fillcolor=green, shape=box, color=green, fontcolor=white]
+    start -> is_braced
+    is_braced [label="Is the initializer in braces?\n[dcl.init]/16.1", shape=diamond]
+    is_braced -> list_initialization [label="Yes"]
 }

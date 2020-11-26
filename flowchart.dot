@@ -1,2 +1,3 @@
 digraph initialization {
+    start [label="So you want to initialize something?", style=filled, fillcolor=green, shape=box, color=green, fontcolor=white]
 }

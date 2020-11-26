@@ -22,4 +22,35 @@ digraph initialization {
         is_initializer_empty_parens -> is_dest_array [label="No"]
 
     is_dest_array[label="Is the destination type an array?\n[dcl.init]/16.5", shape=diamond]
+        is_dest_array -> array_initialization_head [label="Yes"]
+
+    subgraph cluster_array_initialization {
+        array_initialization_head [label="Initialization as follows:\n[dcl.init]/16.5", shape=box]
+            array_initialization_head -> array_k_definition
+        
+        array_k_definition [label="Let k be the number of elements in the initializer's expression list.", shape=box]
+            array_k_definition -> array_is_unsized
+
+        array_is_unsized [label = "Is destination type an array of unknown bound?", shape=diamond]
+            array_is_unsized -> array_unsized_n_defn [label = "Yes"]
+            array_is_unsized -> array_sized_n_defn [label = "No"]
+        
+        array_unsized_n_defn [label = "Let n be k.", shape=box]
+            array_unsized_n_defn -> array_initialize_first_k
+
+        array_sized_n_defn [label = "Let n be the array size of the destination type.", shape=box]
+            array_sized_n_defn -> array_k_gt_n
+
+        array_k_gt_n [label = "Is k > n?", shape=diamond]
+            array_k_gt_n -> array_k_gt_n_ill_formed [label = "Yes"]
+            array_k_gt_n -> array_initialize_first_k [label = "No"]    
+
+        array_k_gt_n_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+
+        array_initialize_first_k [label = "Copy-initialize the first k array elements from the expressions in the initailizer.", shape=box]
+            array_initialize_first_k -> array_initialize_rest
+
+        array_initialize_rest [label = "Value-initialize the remaining elements.", shape=box]
+            array_initialize_rest -> done
+    }
 }

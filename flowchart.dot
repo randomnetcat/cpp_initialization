@@ -19,4 +19,7 @@ digraph initialization {
 
     is_initializer_empty_parens [label="Is the initializer \"()\"?\n[dcl.init]/16.4", shape=diamond]
         is_initializer_empty_parens -> value_initialization [label="Yes"]
+        is_initializer_empty_parens -> is_dest_array [label="No"]
+
+    is_dest_array[label="Is the destination type an array?\n[dcl.init]/16.5", shape=diamond]
 }

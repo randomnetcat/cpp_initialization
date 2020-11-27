@@ -58,7 +58,7 @@ digraph initialization {
             array_initialize_first_k -> array_initialize_rest
 
         array_initialize_rest [label = "Value-initialize the remaining elements.", shape=box]
-            array_initialize_rest -> done
+            LINK_TO_DONE(array_initialize_rest)
     }
 
     is_dest_class_type [label="Is the destination type a class type?\n[dcl.init]/16.6", shape=diamond]
@@ -82,7 +82,7 @@ digraph initialization {
         is_dest_type_bool_for_nullptr -> standard_conv_seq_initialization_head [label="No"]
 
     nullptr_to_bool_init [label="The bool is initialized to false.\n[dcl.init]/16.8", shape=box]
-        nullptr_to_bool_init -> done
+        LINK_TO_DONE(nullptr_to_bool_init)
 
     subgraph class_dest_initialization {
         class_dest_initialization_head [label="Initialization as follows:\n[dcl.init]/16.6", shape=box]
@@ -97,7 +97,7 @@ digraph initialization {
             class_is_initializer_prvalue_same_class -> class_is_copy_init [label="No"]
 
         class_initialize_by_prvalue [label="Use the prvalue to initialize the destination object.\n[dcl.init]/16.6.1", shape=box]
-            class_initialize_by_prvalue -> done
+            LINK_TO_DONE(class_initialize_by_prvalue)
 
         class_is_copy_init [label="Is the initialization copy-initialization?\n[dcl.init]/16.6.2", shape=diamond]
             class_is_copy_init -> class_is_copy_init_same_class [label="Yes"]
@@ -122,7 +122,7 @@ digraph initialization {
             class_constructors_is_resolution_successful -> class_is_aggregate [label="No"]
 
         class_constructors_use_selected [label="Use the selected constructor to initialize the object, using the expression or expression-list as argument(s).\n[dcl.init]/16.6.2.1", shape=box]
-            class_constructors_use_selected -> done
+            LINK_TO_DONE(class_constructors_use_selected)
 
         class_is_aggregate [label="Is the destination type an aggregate class?\n[dcl.init]/16.6.2.2", shape=diamond]
             class_is_aggregate -> class_aggregate_is_initializer_expr_list [label="Yes"]
@@ -152,7 +152,7 @@ digraph initialization {
                 class_aggregate_paren_initialize_first_k -> class_aggregate_paren_initialize_rest
 
             class_aggregate_paren_initialize_rest [label="Use default member initializer or value-initialize the remaining elements.", shape=box]
-                class_aggregate_paren_initialize_rest -> done
+                LINK_TO_DONE(class_aggregate_paren_initialize_rest)
 
             class_aggregate_paren_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
         }
@@ -172,7 +172,7 @@ digraph initialization {
                 class_user_defined_conv_do_conversion -> class_user_defined_conv_initialize
 
             class_user_defined_conv_initialize [label="Direct-initialize the destination object with the result of the conversion.", shape=box]
-                class_user_defined_conv_initialize -> done
+                LINK_TO_DONE(class_user_defined_conv_initialize)
 
             class_user_defined_conv_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
         }
@@ -213,7 +213,7 @@ digraph initialization {
         string_literal_ill_formed_too_many [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
         string_literal_initialize_rest [label="Zero-initialize the remaining elements of the array (if any)."]
-            string_literal_initialize_rest -> done
+            LINK_TO_DONE(string_literal_initialize_rest)
     }
 
     subgraph class_source_initialization {
@@ -230,7 +230,7 @@ digraph initialization {
         class_source_conversion_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
         class_source_initialize [label="Use the result of the conversion to convert the initializer to the object being initialized."]
-            class_source_initialize -> done
+            LINK_TO_DONE(class_source_initialize)
     }
 
     subgraph standard_conv_seq_initialization {
@@ -248,14 +248,14 @@ digraph initialization {
 
         standard_conv_seq_is_bitfield [label="Is the object to be initialized a bit-field?", shape=diamond]
             standard_conv_seq_is_bitfield -> standard_conv_seq_is_bitfield_in_range [label="Yes"]
-            standard_conv_seq_is_bitfield -> done [label="No"]
+            LINK_TO_DONE(standard_conv_seq_is_bitfield, [label="No"])
 
         standard_conv_seq_is_bitfield_in_range [label="Is the value representable by the bit-field?", shape=diamond]
             standard_conv_seq_is_bitfield_in_range -> standard_conv_seq_bitfield_imp_def [label="No"]
-            standard_conv_seq_is_bitfield_in_range -> done [label="Yes"]
+            LINK_TO_DONE(standard_conv_seq_is_bitfield_in_range, [label="Yes"])
 
         standard_conv_seq_bitfield_imp_def [label="The value of the bit-field is implementation-defined.", shape=box]
-            standard_conv_seq_bitfield_imp_def -> done
+            LINK_TO_DONE(standard_conv_seq_bitfield_imp_def)
     }
 
     subgraph reference_initialization {
@@ -281,7 +281,7 @@ digraph initialization {
             reference_lvals_is_compatible -> reference_dest_lval_is_source_class [label="No"]
 
         reference_lvals_compatible_bind [label="The destination reference is bound to the initializer lvalue (or appropriate base).\n[dcl.init.ref]/5.1", shape=box]
-            reference_lvals_compatible_bind -> done
+            LINK_TO_DONE(reference_lvals_compatible_bind)
 
         reference_dest_lval_is_source_class [label="Is T2 a class type?\n[dcl.init.ref]/5.1.2", shape=diamond]
             reference_dest_lval_is_source_class -> reference_dest_lval_source_class_is_reference_related [label="Yes"]
@@ -299,7 +299,7 @@ digraph initialization {
             reference_class_select_conversion -> reference_class_do_initialization
 
         reference_class_do_initialization [label="The destination reference is bound to the result of the conversion (or appropriate base).\n[dcl.init.ref]/5.1", shape=box]
-            reference_class_do_initialization -> done
+            LINK_TO_DONE(reference_class_do_initialization)
 
         reference_dest_is_lval_non_const [label="Is the destination an lvalue reference to a non-const type?\n[dcl.init.ref]/5.2", shape=diamond]
             reference_dest_is_lval_non_const -> reference_dest_non_const_ill_formed [label="Yes"]
@@ -358,7 +358,7 @@ digraph initialization {
             reference_rval_conv_prval_materialize -> reference_rval_conv_bind_glval
 
         reference_rval_conv_bind_glval [label="The destination reference is bound to the resulting glvalue.\n[dcl.init.ref]/5.3", shape=box]
-            reference_rval_conv_bind_glval -> done
+            LINK_TO_DONE(reference_rval_conv_bind_glval)
 
         reference_temp_is_dest_class [label="Is T1 a class type?\n[dcl.init.ref]/5.4.1", shape=diamond]
             reference_temp_is_dest_class -> reference_temp_is_related [label="Yes"]
@@ -382,7 +382,7 @@ digraph initialization {
         reference_temp_user_defined_conv_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
         reference_temp_user_defined_conv_direct_initialize [label="The result of the call to the conversion function, as described by non-reference copy-initialization, is used to direct-initialize the reference. For the direct-initialization, user-defined conversions are not considered.\n[dcl.init.ref]/5.4.1", shape=box]
-            reference_temp_user_defined_conv_direct_initialize -> done
+            LINK_TO_DONE(reference_temp_user_defined_conv_direct_initialize)
 
         reference_temp_implicit_conv [label="The initializer expression is implicitly converted to a prvalue of type \"cv1 T1\".\n[dcl.init.ref]/5.4.2", shape=box]
             reference_temp_implicit_conv -> reference_temp_implicit_conv_materialize
@@ -395,7 +395,7 @@ digraph initialization {
 
         reference_temp_implicit_conv_materialize_is_reference_related [label="Is T1 reference-related to T2?\n[dcl.init.ref]/5.4", shape=diamond]
             reference_temp_implicit_conv_materialize_is_reference_related -> reference_temp_implicit_conv_materialize_is_cv_okay [label="Yes"]
-            reference_temp_implicit_conv_materialize_is_reference_related -> done [label="No"]
+            LINK_TO_DONE(reference_temp_implicit_conv_materialize_is_reference_related, [label="No"])
 
         reference_temp_implicit_conv_materialize_is_cv_okay [label="Is cv1 more qualified than cv2?\n[dcl.init.ref]/5.4.3", shape=diamond]
             reference_temp_implicit_conv_materialize_is_cv_okay -> reference_temp_implicit_conv_materialize_is_dest_rval [label="Yes"]
@@ -405,11 +405,11 @@ digraph initialization {
 
         reference_temp_implicit_conv_materialize_is_dest_rval [label="Is the destination an rvalue reference?\n[dcl.init.ref]/5.4.3", shape=diamond]
             reference_temp_implicit_conv_materialize_is_dest_rval -> reference_temp_implicit_conv_materialize_is_source_lval [label="Yes"]
-            reference_temp_implicit_conv_materialize_is_dest_rval -> done [label="No"]
+            LINK_TO_DONE(reference_temp_implicit_conv_materialize_is_dest_rval, [label="No"])
 
         reference_temp_implicit_conv_materialize_is_source_lval [label="Is the initializer an lvalue?\n[dcl.init.ref]/5.4.4", shape=diamond]
             reference_temp_implicit_conv_materialize_is_source_lval -> reference_temp_implicit_conv_materialize_source_lval_ill_formed [label="Yes"]
-            reference_temp_implicit_conv_materialize_is_source_lval -> done [label="No"]
+            LINK_TO_DONE(reference_temp_implicit_conv_materialize_is_source_lval, [label="No"])
 
         reference_temp_implicit_conv_materialize_source_lval_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
     }
@@ -442,20 +442,20 @@ digraph initialization {
             value_is_array -> value_zero_initialize_fallback [label="No"]
 
         value_value_initialize_elements [label="Each element is value-initialized.", shape=box]
-            value_value_initialize_elements -> done
+            LINK_TO_DONE(value_value_initialize_elements)
 
         value_zero_initialize_fallback [label="The object is zero-initialized.", shape=box]
-            value_zero_initialize_fallback -> done
+            LINK_TO_DONE(value_zero_initialize_fallback)
 
         value_default_initialize [label="The object is default-initialized.\n[dcl.init]/8.1.*", shape=box]
-            value_default_initialize -> done
+            LINK_TO_DONE(value_default_initialize)
 
         value_check_default [label="The semantic constraints for default-initialization are checked.\n[dcl.init]/8.1.2", shape=box]
             value_check_default -> value_has_nontrivial_dflt_ctor
 
         value_has_nontrivial_dflt_ctor [label="Does the type have a non-trivial default constructor?\n[dcl.init]/8.1.2", shape=diamond]
             value_has_nontrivial_dflt_ctor -> value_default_initialize [label="Yes"]
-            value_has_nontrivial_dflt_ctor -> done [label="No"]
+            LINK_TO_DONE(value_has_nontrivial_dflt_ctor, [label="No"])
     }
 
     subgraph list_initialization {
@@ -498,10 +498,10 @@ digraph initialization {
             list_aggregate_singleton_type_init_type -> list_aggregate_singleton_type_direct [label="direct-list-initialization"]
 
         list_aggregate_singleton_type_copy [label="The object is copy-initialized from the sole element.\n[dcl.init.list]/3.2"]
-            list_aggregate_singleton_type_copy -> done
+            LINK_TO_DONE(list_aggregate_singleton_type_copy)
 
         list_aggregate_singleton_type_direct [label="The object is direct-initialized from the sole element.\n[dcl.init.list]/3.2"]
-            list_aggregate_singleton_type_direct -> done
+            LINK_TO_DONE(list_aggregate_singleton_type_direct)
 
         list_is_type_char_array [label="Is the type a character array?\n[dcl.init.list]/3.3", shape=diamond]
             list_is_type_char_array -> list_char_array_is_singleton [label="Yes"]
@@ -538,7 +538,7 @@ digraph initialization {
             list_empty_has_default_constructor -> list_dest_is_initializer_list [label="No"]
 
         list_empty_value_initialize [label="The object is value-initialized.\n[dcl.init.list]/3.5", shape=box]
-            list_empty_value_initialize -> done
+            LINK_TO_DONE(list_empty_value_initialize)
 
         list_dest_is_initializer_list [label="Is the type a specialization of std::initializer_list?\n[dcl.init.list]/3.6"]
             list_dest_is_initializer_list -> list_initializer_list_init [label="Yes"]
@@ -563,7 +563,7 @@ digraph initialization {
         list_initializer_list_narrowing_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
         list_initializer_list_init_object [label="The initializer_list is constructed to refer to the materialized array.", shape=box]
-            list_initializer_list_init_object -> done
+            LINK_TO_DONE(list_initializer_list_init_object)
 
         list_is_class [label="Is the type a class type?\n[dcl.init.list]/3.7", shape=diamond]
             list_is_class -> list_class_ctors [label="Yes"]
@@ -574,7 +574,7 @@ digraph initialization {
 
         list_class_is_narrowing [label="Is a narrowing conversion required to convert any of the arguments?\n[dcl.init.list]/3.7", shape=diamond]
             list_class_is_narrowing -> list_class_narrowing_ill_formed [label="Yes"]
-            list_class_is_narrowing -> done [label="No"]
+            LINK_TO_DONE(list_class_is_narrowing, [label="No"])
 
         list_class_narrowing_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
@@ -609,7 +609,7 @@ digraph initialization {
             list_enum_is_narrowing -> list_enum_initialization [label="No"]
 
         list_enum_initialization [label="The object is initialized with the value T(u).", shape=box]
-            list_enum_initialization -> done
+            LINK_TO_DONE(list_enum_initialization)
 
         list_enum_narrowing_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
@@ -641,7 +641,7 @@ digraph initialization {
             list_final_singleton_copy -> list_final_singleton_is_narrowing
 
         list_final_singleton_is_narrowing [label="Is a narrowing conversion required to convert the element to the destination type?\n[dcl.init.list]/3.9", shape=diamond]
-            list_final_singleton_is_narrowing -> done [label="No"]
+            LINK_TO_DONE(list_final_singleton_is_narrowing, [label="No"])
             list_final_singleton_is_narrowing -> list_final_singleton_narrowing_ill_formed [label="Yes"]
 
         list_final_singleton_narrowing_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
@@ -667,7 +667,7 @@ digraph initialization {
             list_ref_prvalue_init_prvalue -> list_ref_prvalue_init_ref
 
         list_ref_prvalue_init_ref [label="The reference is direct-initialized by the prvalue.\n[dcl.init.list]/3.10", shape=box]
-            list_ref_prvalue_init_ref -> done 
+            LINK_TO_DONE(list_ref_prvalue_init_ref)
 
         // Final, again, as in "last".
         list_final_is_empty [label="Is the initializer list empty?\n[dcl.init.list]/3.11", shape=diamond]
@@ -675,7 +675,7 @@ digraph initialization {
             list_final_is_empty -> list_nothing_else_ill_formed [label="No"]
 
         list_final_empty_value_init [label="The object is value-initialized.\n[dcl.init.list]/3.12", shape=box]
-            list_final_empty_value_init -> done
+            LINK_TO_DONE(list_final_empty_value_init)
 
         list_nothing_else_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 

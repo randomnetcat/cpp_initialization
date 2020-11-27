@@ -18,7 +18,7 @@ digraph initialization {
         is_char_arr_literal_init -> is_initializer_empty_parens [label="No"]
 
     is_initializer_empty_parens [label="Is the initializer \"()\"?\n[dcl.init]/16.4", shape=diamond]
-        is_initializer_empty_parens -> value_initialization [label="Yes"]
+        is_initializer_empty_parens -> value_initialization_head [label="Yes"]
         is_initializer_empty_parens -> is_dest_array [label="No"]
 
     is_dest_array[label="Is the destination type an array?\n[dcl.init]/16.5", shape=diamond]
@@ -406,5 +406,49 @@ digraph initialization {
             reference_temp_implicit_conv_materialize_is_source_lval -> done [label="No"]
 
         reference_temp_implicit_conv_materialize_source_lval_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+    }
+
+    subgraph value_initialization {
+        value_initialization_head [label="Value-initialization\n[dcl.init]/8", shape=box]
+            value_initialization_head -> value_is_class
+
+        value_is_class [label="Is the type a class type?\n[dcl.init]/8.1", shape=diamond]
+            value_is_class -> value_has_dflt_ctor [label="Yes"]
+            value_is_class -> value_is_array [label="No"]
+
+        value_has_dflt_ctor [label="Does the type have a default constructor?\n[dcl.init]/8.1.1", shape=diamond]
+            value_has_dflt_ctor -> value_default_initialize [label="No"]
+            value_has_dflt_ctor -> value_has_deleted_dflt_ctor [label="Yes"]
+
+        value_has_deleted_dflt_ctor [label="Does the type have a deleted default constructor?\n[dcl.init]/8.1.1", shape=diamond]
+            value_has_deleted_dflt_ctor -> value_default_initialize [label="Yes"]
+            value_has_deleted_dflt_ctor -> value_has_user_dflt_ctor [label="No"]
+
+        value_has_user_dflt_ctor [label="Does the type have a user-provided default constructor?\n[dcl.init]/8.1.1", shape=diamond]
+            value_has_user_dflt_ctor -> value_default_initialize [label="Yes"]
+            value_has_user_dflt_ctor -> value_zero_initialize_class [label="No"]
+
+        value_zero_initialize_class [label="The object is zero-initialized.", shape=box]
+            value_zero_initialize_class -> value_check_default
+
+        value_is_array [label="Is the type an array type?\n[dcl.init]/8.2", shape=diamond]
+            value_is_array -> value_value_initialize_elements [label="Yes"]
+            value_is_array -> value_zero_initialize_fallback [label="No"]
+
+        value_value_initialize_elements [label="Each element is value-initialized.", shape=box]
+            value_value_initialize_elements -> done
+
+        value_zero_initialize_fallback [label="The object is zero-initialized.", shape=box]
+            value_zero_initialize_fallback -> done
+
+        value_default_initialize [label="The object is default-initialized.\n[dcl.init]/8.1.*", shape=box]
+            value_default_initialize -> done
+
+        value_check_default [label="The semantic constraints for default-initialization are checked.\n[dcl.init]/8.1.2", shape=box]
+            value_check_default -> value_has_nontrivial_dflt_ctor
+
+        value_has_nontrivial_dflt_ctor [label="Does the type have a non-trivial default constructor?\n[dcl.init]/8.1.2", shape=diamond]
+            value_has_nontrivial_dflt_ctor -> value_default_initialize [label="Yes"]
+            value_has_nontrivial_dflt_ctor -> done [label="No"]
     }
 }

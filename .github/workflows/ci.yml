@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches-ignore: gh-pages
+  pull_request:
+    branches-ignore: gh-pages
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Create gh-pages directory
+        run: mkdir -p generation/gh-pages
+      
+      - name: Install dependencies
+        run: sudo apt-get install m4 graphviz
+        
+      - name: Generate SVG
+        run: m4 flowchart.dot.m4 | dot -Tsvg > generation/gh-pages/initialization.svg
+        
+      - name: Generate PNG
+        run: m4 flowchart.dot.m4 | dot -Tpng > generation/gh-pages/initialization.png
+        
+      - name: Deploy generated to Github Pages
+        uses: crazy-max/ghaction-github-pages@v2.0.0
+        with:
+          target_branch: gh-pages
+          keep_history: true
+          allow_empty_commit: false
+          build_dir: "generation/gh-pages"
+          author: "ci-build <ci-build@randomcat.org>"
+          commit_message: "[skip ci] CI Updates"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

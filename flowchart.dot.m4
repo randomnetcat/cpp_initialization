@@ -41,7 +41,7 @@ digraph initialization {
 
     YN_QUESTION_NODE(is_dest_array, `Is the destination type an array?', `[dcl.init]/16.5', array_initialization_head, is_dest_class_type)
 
-    subgraph array_initialization {
+    subgraph cluster_array_initialization {
         INSTRUCTION_NODE(array_initialization_head, `Initialization as follows:', `[dcl.init]/16.5')
             array_initialization_head -> array_k_definition
         
@@ -80,7 +80,7 @@ digraph initialization {
     INSTRUCTION_NODE(nullptr_to_bool_init, `The bool is initialized to false.', `[dcl.init]/16.8')
         LINK_TO_DONE(nullptr_to_bool_init)
 
-    subgraph class_dest_initialization {
+    subgraph cluster_class_dest_initialization {
         INSTRUCTION_NODE(class_dest_initialization_head, `Initialization as follows:', `[dcl.init]/16.6')
             class_dest_initialization_head -> class_is_initializer_prvalue
 
@@ -158,7 +158,7 @@ digraph initialization {
         }
     }
 
-    subgraph string_literal_initialization {
+    subgraph cluster_string_literal_initialization {
         INSTRUCTION_NODE(string_literal_initialization_head, `Initialization as follows:', `[dcl.init.string]')
             string_literal_initialization_head -> string_literal_verify_kind
 
@@ -193,7 +193,7 @@ digraph initialization {
             LINK_TO_DONE(string_literal_initialize_rest)
     }
 
-    subgraph class_source_initialization {
+    subgraph cluster_class_source_initialization {
         INSTRUCTION_NODE(class_source_initialization_head, `Initialized as follows:', `[dcl.init]/16.7')
             class_source_initialization_head -> class_source_consider_conversion_functions
 
@@ -208,7 +208,7 @@ digraph initialization {
             LINK_TO_DONE(class_source_initialize)
     }
 
-    subgraph standard_conv_seq_initialization {
+    subgraph cluster_standard_conv_seq_initialization {
         INSTRUCTION_NODE(standard_conv_seq_initialization_head, `The object is initialized as follows:', `[dcl.init]/6.9')
             standard_conv_seq_initialization_head -> standard_conv_seq_do_init
 
@@ -231,7 +231,7 @@ digraph initialization {
             LINK_TO_DONE(standard_conv_seq_bitfield_imp_def)
     }
 
-    subgraph reference_initialization {
+    subgraph cluster_reference_initialization {
         INSTRUCTION_NODE(reference_initialization_head, `Reference initialization', `[dcl.init.ref]')
             reference_initialization_head -> reference_dest_type_defn
         
@@ -343,7 +343,7 @@ digraph initialization {
             LINK_TO_DONE(reference_temp_implicit_conv_materialize_is_source_lval, [label="No"])
     }
 
-    subgraph value_initialization {
+    subgraph cluster_value_initialization {
         INSTRUCTION_NODE(value_initialization_head, `Value-initialization', `[dcl.init]/8')
             value_initialization_head -> value_is_class
 
@@ -540,7 +540,7 @@ digraph initialization {
 
     }
 
-    subgraph aggregate_initialization {
+    subgraph cluster_aggregate_initialization {
         INSTRUCTION_NODE(aggregate_initialization_head, `Aggregate initialization', `[dcl.init.aggr]')
             aggregate_initialization_head -> aggregate_determine_elements
 

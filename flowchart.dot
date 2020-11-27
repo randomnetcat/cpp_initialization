@@ -14,7 +14,7 @@ digraph initialization {
         is_char_arr_init -> is_char_arr_literal_init [label="Yes"]
     
     is_char_arr_literal_init [label="Is the initializer a string literal?\n[dcl.init]/16.3", shape=diamond]
-        is_char_arr_literal_init -> string_literal_initialization [label="Yes"]
+        is_char_arr_literal_init -> string_literal_initialization_head [label="Yes"]
         is_char_arr_literal_init -> is_initializer_empty_parens [label="No"]
 
     is_initializer_empty_parens [label="Is the initializer \"()\"?\n[dcl.init]/16.4", shape=diamond]
@@ -150,5 +150,43 @@ digraph initialization {
 
             class_user_defined_conv_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
         }
+    }
+
+    subgraph string_literal_initialization {
+        string_literal_initialization_head [label="Initialization as follows:\n[dcl.init.string]", shape=box]
+            string_literal_initialization_head -> string_literal_verify_kind
+
+        string_literal_verify_kind [label="Verify array type and literal type match.", shape=box]
+            string_literal_verify_kind -> { string_literal_kind_char, string_literal_kind_char8, string_literal_kind_char16, string_literal_kind_char32, string_literal_kind_wchar, string_literal_kind_other }
+
+        {
+        rank=same;
+        string_literal_kind_char [label="char[] / ordinary literal"]
+        string_literal_kind_char8 [label="char8_t[] / UTF-8 literal"]
+        string_literal_kind_char16 [label="char16_t[] / UTF-16 literal"]
+        string_literal_kind_char32 [label="char32_t[] / UTF-32 literal"]
+        string_literal_kind_wchar [label="wchar_t[] / wide literal"]
+        string_literal_kind_other [label="Anything else"]
+
+        // Force these nodes to layout in the following order
+        string_literal_kind_char -> string_literal_kind_char8 -> string_literal_kind_char16 -> string_literal_kind_char32 -> string_literal_kind_wchar -> string_literal_kind_other [style=invis]
+        }
+
+        string_literal_kind_other -> string_literal_wrong_kind
+        string_literal_wrong_kind  [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+
+        { string_literal_kind_char, string_literal_kind_char8, string_literal_kind_char16, string_literal_kind_char32, string_literal_kind_wchar } -> string_literal_initialize_first
+
+        string_literal_initialize_first [label="Initialize the first elements of the array with successive values from the string literal.", shape=box]
+            string_literal_initialize_first -> string_literal_has_too_many
+
+        string_literal_has_too_many [label="Are there more initializers than array elements?", shape=diamond]
+            string_literal_has_too_many -> string_literal_ill_formed_too_many [label="Yes"]
+            string_literal_has_too_many -> string_literal_initialize_rest [label="No"]
+
+        string_literal_ill_formed_too_many [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+
+        string_literal_initialize_rest [label="Zero-initialize the remaining elements of the array (if any)."]
+            string_literal_initialize_rest -> done
     }
 }

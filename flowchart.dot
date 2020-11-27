@@ -57,6 +57,10 @@ digraph initialization {
 
     is_dest_class_type [label="Is the destination type a class type?\n[dcl.init]/16.6", shape=diamond]
         is_dest_class_type -> class_dest_initialization_head [label="Yes"]
+        is_dest_class_type -> is_source_class_type [label="No"]
+
+    is_source_class_type [label="Is the source type a class type?\n[dcl.init]/16.7", shape=diamond]
+        is_source_class_type -> class_source_initialization_head [label="Yes"]
 
     subgraph class_dest_initialization {
         class_dest_initialization_head [label="Initialization as follows:\n[dcl.init]/16.6", shape=box]
@@ -188,5 +192,22 @@ digraph initialization {
 
         string_literal_initialize_rest [label="Zero-initialize the remaining elements of the array (if any)."]
             string_literal_initialize_rest -> done
+    }
+
+    subgraph class_source_initialization {
+        class_source_initialization_head [label="Initialized as follows:\n[dcl.init]/16.7", shape=box]
+            class_source_initialization_head -> class_source_consider_conversion_functions
+
+        class_source_consider_conversion_functions [label="Use overload resolution to select the best applicable conversion function.", shape=box]
+            class_source_consider_conversion_functions -> class_source_conversion_is_impossible
+
+        class_source_conversion_is_impossible [label="Is the conversion impossible or ambiguous?", shape=diamond]
+            class_source_conversion_is_impossible -> class_source_conversion_ill_formed [label="Yes"]
+            class_source_conversion_is_impossible -> class_source_initialize [label="No"]
+
+        class_source_conversion_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+
+        class_source_initialize [label="Use the result of the conversion to convert the initializer to the object being initialized."]
+            class_source_initialize -> done
     }
 }

@@ -23,6 +23,7 @@ digraph initialization {
 
     is_dest_array[label="Is the destination type an array?\n[dcl.init]/16.5", shape=diamond]
         is_dest_array -> array_initialization_head [label="Yes"]
+        is_dest_array -> is_dest_class_type [label="No"]
 
     subgraph array_initialization {
         array_initialization_head [label="Initialization as follows:\n[dcl.init]/16.5", shape=box]
@@ -52,5 +53,102 @@ digraph initialization {
 
         array_initialize_rest [label = "Value-initialize the remaining elements.", shape=box]
             array_initialize_rest -> done
+    }
+
+    is_dest_class_type [label="Is the destination type a class type?\n[dcl.init]/16.6", shape=diamond]
+        is_dest_class_type -> class_dest_initialization_head [label="Yes"]
+
+    subgraph class_dest_initialization {
+        class_dest_initialization_head [label="Initialization as follows:\n[dcl.init]/16.6", shape=box]
+            class_dest_initialization_head -> class_is_initializer_prvalue
+
+        class_is_initializer_prvalue [label="Is the initializer a prvalue?\n[dcl.init]/16.6.1", shape=diamond]
+            class_is_initializer_prvalue -> class_is_initializer_prvalue_same_class [label="Yes"]
+            class_is_initializer_prvalue -> class_is_copy_init [label="No"]
+
+        class_is_initializer_prvalue_same_class [label="Is the source type the same as the destination type (up to cv-qualification)?\n[dcl.init]/16.6.1", shape=diamond]
+            class_is_initializer_prvalue_same_class -> class_initialize_by_prvalue [label="Yes"]
+            class_is_initializer_prvalue_same_class -> class_is_copy_init [label="No"]
+
+        class_initialize_by_prvalue [label="Use the prvalue to initialize the destination object.\n[dcl.init]/16.6.1", shape=box]
+            class_initialize_by_prvalue -> done
+
+        class_is_copy_init [label="Is the initialization copy-initialization?\n[dcl.init]/16.6.2", shape=diamond]
+            class_is_copy_init -> class_is_copy_init_same_class [label="Yes"]
+            class_is_copy_init -> class_is_direct_init [label="No"]
+        
+        class_is_copy_init_same_class [label="Is the source type the same class as the destination type (up to cv qualification)?\n[dcl.init]/16.6.2", shape=box]
+            class_is_copy_init_same_class -> class_consider_constructors [label="Yes"]
+            class_is_copy_init_same_class -> class_is_copy_init_derived_class [label="No"]
+
+        class_is_copy_init_derived_class [label="Is the source type a derived class of the destination type?\n[dcl.init]/16.6.2", shape=box]
+            class_is_copy_init_derived_class -> class_consider_constructors [label="Yes"]
+            class_is_copy_init_derived_class -> class_user_defined_conv_head [label="No"]
+
+        class_is_direct_init [label="The initialization is direct-initialization.\n[dcl.init]/16.6.2", shape=box]
+            class_is_direct_init -> class_consider_constructors
+
+        class_consider_constructors [label="Enumerate constructors and select best through overload resolution.\n[dcl.init]/16.6.2", shape=box]
+            class_consider_constructors -> class_constructors_is_resolution_successful
+
+        class_constructors_is_resolution_successful [label="Is overload resolution succesful?\n[dcl.init]/16.6.2", shape=diamond]
+            class_constructors_is_resolution_successful -> class_constructors_use_selected [label="Yes"]
+            class_constructors_is_resolution_successful -> class_is_aggregate [label="No"]
+
+        class_constructors_use_selected [label="Use the selected constructor to initialize the object, using the expression or expression-list as argument(s).\n[dcl.init]/16.6.2.1", shape=box]
+            class_constructors_use_selected -> done
+
+        class_is_aggregate [label="Is the destination type an aggregate class?\n[dcl.init]/16.6.2.2", shape=diamond]
+            class_is_aggregate -> class_aggregate_is_initializer_expr_list [label="Yes"]
+            class_is_aggregate -> class_ill_formed [label="No"]
+
+        class_aggregate_is_initializer_expr_list [label="Is the initializer a parenthesized expression-list?\n[dcl.init]/16.6.2.2", shape=diamond]
+            class_aggregate_is_initializer_expr_list -> class_aggregate_paren_init_head [label="Yes"]
+            class_aggregate_is_initializer_expr_list -> class_ill_formed [label="No"]
+
+        class_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+
+        subgraph class_aggregate_paren_init {
+            class_aggregate_paren_init_head [label="Initialized as follows:\n[dcl.init]/16.6.2.2", shape=box]
+                class_aggregate_paren_init_head -> class_aggregate_paren_n_defn
+
+            class_aggregate_paren_n_defn [label="Let n be the number of elements in the aggregate.", shape=box]
+                class_aggregate_paren_n_defn -> class_aggregate_paren_k_defn
+
+            class_aggregate_paren_k_defn [label="Let k b ethe number of elements in the initializer's expression list.", shape=box]
+                class_aggregate_paren_k_defn -> class_aggregate_paren_is_k_gt_n
+
+            class_aggregate_paren_is_k_gt_n [label="Is k > n?", shape=diamond]
+                class_aggregate_paren_is_k_gt_n -> class_aggregate_paren_ill_formed [label="Yes"]
+                class_aggregate_paren_is_k_gt_n -> class_aggregate_paren_initialize_first_k [label="No"]
+
+            class_aggregate_paren_initialize_first_k [label="Copy-initialize the first k elements from the expression list.", shape=box]
+                class_aggregate_paren_initialize_first_k -> class_aggregate_paren_initialize_rest
+
+            class_aggregate_paren_initialize_rest [label="Use default member initializer or value-initialize the remaining elements.", shape=box]
+                class_aggregate_paren_initialize_rest -> done
+
+            class_aggregate_paren_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+        }
+
+        subgraph class_user_defined_conv {
+            class_user_defined_conv_head [label = "Initialization as follows:\n[dcl.init]/16.6.3", shape=box]
+                class_user_defined_conv_head -> class_user_defined_conv_overload_resolution
+
+            class_user_defined_conv_overload_resolution [label="Use overload resolution to select the best user-defined conversion that can convert from the source type to the destination type or (when a conversion function is used) to a derived class thereof.", shape=box]
+                class_user_defined_conv_overload_resolution -> class_user_defined_conv_is_possible
+            
+            class_user_defined_conv_is_possible [label="Is the conversion ambiguous or impossible?", shape=diamond]
+                class_user_defined_conv_is_possible -> class_user_defined_conv_ill_formed [label="Yes"]
+                class_user_defined_conv_is_possible -> class_user_defined_conv_do_conversion [label="No"]
+
+            class_user_defined_conv_do_conversion [label = "Call the selected function with the initializer-expression as its argument.", shape=box]
+                class_user_defined_conv_do_conversion -> class_user_defined_conv_initialize
+
+            class_user_defined_conv_initialize [label="Direct-initialize the destination object with the result of the conversion.", shape=box]
+                class_user_defined_conv_initialize -> done
+
+            class_user_defined_conv_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+        }
     }
 }

@@ -7,7 +7,7 @@ digraph initialization {
         is_braced -> is_dest_reference [label="No"]
     
     is_dest_reference [label="Is the destination type a reference type?\n[dcl.init]/16.2", shape=diamond]
-        is_dest_reference -> reference_initialization [label="Yes"]
+        is_dest_reference -> reference_initialization_head [label="Yes"]
         is_dest_reference -> is_char_arr_init [label="No"]
     
     is_char_arr_init [label="Is the destination type a char[] or a char*_t[]?\n[dcl.init]/16.3", shape=diamond]
@@ -250,5 +250,161 @@ digraph initialization {
 
         standard_conv_seq_bitfield_imp_def [label="The value of the bit-field is implementation-defined.", shape=box]
             standard_conv_seq_bitfield_imp_def -> done
+    }
+
+    subgraph reference_initialization {
+        reference_initialization_head [label="Reference initialization\n[dcl.init.ref]", shape=box]
+            reference_initialization_head -> reference_dest_type_defn
+        
+        reference_dest_type_defn [label="Let the destination type be \"reference to cv1 T1\".\n[dcl.init.ref]/5", shape=box]
+            reference_dest_type_defn -> reference_source_type_defn
+
+        reference_source_type_defn [label="Let the source type be \"cv2 T2\".\n[dcl.init.ref]/5", shape=box]
+            reference_source_type_defn -> reference_is_dest_lval
+
+        reference_is_dest_lval [label="Is the destination type an lvalue reference?\n[dcl.init.ref]/5.1", shape=diamond]
+            reference_is_dest_lval -> reference_dest_lval_is_source_lval [label="Yes"]
+            reference_is_dest_lval -> reference_dest_is_lval_non_const [label="No"]
+
+        reference_dest_lval_is_source_lval [label="Is the initializer an lvalue?\n[dcl.init.ref]/5.1", shape=diamond]
+            reference_dest_lval_is_source_lval -> reference_lvals_is_compatible [label="Yes"]
+            reference_dest_lval_is_source_lval -> reference_dest_lval_is_source_class [label="No"]
+
+        reference_lvals_is_compatible [label="Is cv1 T1 reference-compatibile with cv2 T2?\n[dcl.init.ref]/5.1", shape=diamond]
+            reference_lvals_is_compatible -> reference_lvals_compatible_bind [label="Yes"]
+            reference_lvals_is_compatible -> reference_dest_lval_is_source_class [label="No"]
+
+        reference_lvals_compatible_bind [label="The destination reference is bound to the initializer lvalue (or appropriate base).\n[dcl.init.ref]/5.1", shape=box]
+            reference_lvals_compatible_bind -> done
+
+        reference_dest_lval_is_source_class [label="Is T2 a class type?\n[dcl.init.ref]/5.1.2", shape=diamond]
+            reference_dest_lval_is_source_class -> reference_dest_lval_source_class_is_reference_related [label="Yes"]
+            reference_dest_lval_is_source_class -> reference_dest_is_lval_non_const [label="No"]
+
+        reference_dest_lval_source_class_is_reference_related [label="Is T1 reference-related to T2?\n[dcl.init.ref]/5.1.2", shape=diamond]
+            reference_dest_lval_source_class_is_reference_related -> reference_dest_lval_source_class_is_convertible [label="No"]
+            reference_dest_lval_source_class_is_reference_related -> reference_dest_is_lval_non_const [label="Yes"]
+
+        reference_dest_lval_source_class_is_convertible [label="Is T2 convertible to an lvalue of type cv3 T3 such that cv1 T1 is reference-compatible with cv3 T3?\n[dcl.init.ref]/5.1.2", shape=diamond]
+            reference_dest_lval_source_class_is_convertible -> reference_class_select_conversion [label="Yes"]
+            reference_dest_lval_source_class_is_convertible -> reference_dest_is_lval_non_const [label="No"]
+
+        reference_class_select_conversion [label="Select the best applicable conversion function.\n[dcl.init.ref]/5.1.2", shape=box]
+            reference_class_select_conversion -> reference_class_do_initialization
+
+        reference_class_do_initialization [label="The destination reference is bound to the result of the conversion (or appropriate base).\n[dcl.init.ref]/5.1", shape=box]
+            reference_class_do_initialization -> done
+
+        reference_dest_is_lval_non_const [label="Is the destination an lvalue reference to a non-const type?\n[dcl.init.ref]/5.2", shape=diamond]
+            reference_dest_is_lval_non_const -> reference_dest_non_const_ill_formed [label="Yes"]
+            reference_dest_is_lval_non_const -> reference_dest_is_volatile [label="No"]
+
+        reference_dest_non_const_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+
+        reference_dest_is_volatile [label="Is the destination's referenced type volatile-qualified\n[dcl.init.ref]/5.2", shape=diamond]
+            reference_dest_is_volatile -> reference_dest_volatile_ill_formed [label="Yes"]
+            reference_dest_is_volatile -> reference_rval_conv_source_is_rvalue [label="No"]
+
+        reference_dest_volatile_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+
+        reference_rval_conv_source_is_rvalue [label="Is the initializer an rvalue?\n[dcl.init.ref]/5.3.1", shape=diamond]
+            reference_rval_conv_source_is_rvalue -> reference_rval_conv_source_is_rvalue_bitfield [label="Yes"]
+            reference_rval_conv_source_is_rvalue -> reference_rval_conv_source_is_function_lval [label="No"]
+
+        reference_rval_conv_source_is_rvalue_bitfield [label="Is the initializer a bit-field?\n[dcl.init.ref]/5.3.1", shape=diamond]
+            reference_rval_conv_source_is_rvalue_bitfield -> reference_rval_conv_source_rval_or_function_is_ref_compat [label="No"]
+            reference_rval_conv_source_is_rvalue_bitfield -> reference_rval_conv_source_is_function_lval [label="Yes"]
+
+        reference_rval_conv_source_is_function_lval [label="Is the initializer a function lvalue?\n[dcl.init.ref]/5.3.1", shape=diamond]
+            reference_rval_conv_source_is_function_lval -> reference_rval_conv_source_rval_or_function_is_ref_compat [label="Yes"]
+            reference_rval_conv_source_is_function_lval -> reference_rval_conv_source_is_class [label="No"]
+
+        reference_rval_conv_source_rval_or_function_is_ref_compat [label="Is cv1 T1 reference-compatible with cv2 T2?\n[dcl.init.ref]/5.3.1", shape=diamond]
+            reference_rval_conv_source_rval_or_function_is_ref_compat -> reference_rval_conv_bind_direct [label="Yes"]
+            reference_rval_conv_source_rval_or_function_is_ref_compat -> reference_rval_conv_source_is_class [label="No"]
+
+        reference_rval_conv_source_is_class [label="Is T2 a class type?\n[dcl.init.ref]/5.3.2", shape=diamond]
+            reference_rval_conv_source_is_class -> reference_rval_conv_source_class_is_ref_related [label="Yes"]
+            reference_rval_conv_source_is_class -> reference_temp_is_dest_class [label="No"]
+
+        reference_rval_conv_source_class_is_ref_related [label="Is T1 reference-related to T2?\n[dcl.init.ref]/5.3.2", shape=diamond]
+            reference_rval_conv_source_class_is_ref_related -> reference_rval_conv_source_class_convertible_target [label="No"]
+            reference_rval_conv_source_class_is_ref_related -> reference_temp_is_dest_class [label="Yes"]
+
+        reference_rval_conv_source_class_convertible_target [label="Is the initializer convertible to an rvalue or function lvalue of type \"cv3 T3\", where \"cv1 T1\" is reference-compatible with \"cv3 T3\"?\n[dcl.init.ref]/5.3.2", shape=diamond]
+            reference_rval_conv_source_class_convertible_target -> reference_rval_conv_bind_converted [label="Yes"]
+            reference_rval_conv_source_class_convertible_target -> reference_temp_is_dest_class [label="No"]
+
+        reference_rval_conv_bind_direct [label="The converted initializer is the value of the initializer.\n[dcl.init.ref]/5.3", shape=box]
+            reference_rval_conv_bind_direct -> reference_rval_conv_is_converted_prval
+
+        reference_rval_conv_bind_converted [label="The converted initializer is the result of the conversion.\n[dcl.init.ref]/5.3", shape=box]
+            reference_rval_conv_bind_converted -> reference_rval_conv_is_converted_prval
+
+        reference_rval_conv_is_converted_prval [label="Is the converted initializer a prvalue?\n[dcl.init.ref]/5.3", shape=diamond]
+            reference_rval_conv_is_converted_prval -> reference_rval_conv_prval_adjust_type [label="Yes"]
+        reference_rval_conv_is_converted_prval -> reference_rval_conv_bind_glval [label="No"]
+
+        reference_rval_conv_prval_adjust_type [label="Its type T4 is adjusted to \"cv1 T4\".\n[dcl.init.ref]/5.3", shape=box]
+            reference_rval_conv_prval_adjust_type -> reference_rval_conv_prval_materialize
+
+        reference_rval_conv_prval_materialize [label="The prvalue is materialized.\n[dcl.init.ref]/5.3", shape=box]
+            reference_rval_conv_prval_materialize -> reference_rval_conv_bind_glval
+
+        reference_rval_conv_bind_glval [label="The destination reference is bound to the resulting glvalue.\n[dcl.init.ref]/5.3", shape=box]
+            reference_rval_conv_bind_glval -> done
+
+        reference_temp_is_dest_class [label="Is T1 a class type?\n[dcl.init.ref]/5.4.1", shape=diamond]
+            reference_temp_is_dest_class -> reference_temp_is_related [label="Yes"]
+            reference_temp_is_dest_class -> reference_temp_is_source_class [label="No"]
+
+        reference_temp_is_source_class [label="Is T2 a class type?\n[dcl.init.ref]/5.4.1", shape=diamond]
+            reference_temp_is_source_class -> reference_temp_is_related [label="Yes"]
+            reference_temp_is_source_class -> reference_temp_implicit_conv [label="No"]
+
+        reference_temp_is_related [label="Is T1 reference-related to T2?\n[dcl.init.ref]/5.4.1", shape=diamond]
+            reference_temp_is_related -> reference_temp_user_defined_conv [label="No"]
+            reference_temp_is_related -> reference_temp_implicit_conv [label="Yes"]
+
+        reference_temp_user_defined_conv [label="Consider user-defined conversions for the copy-initialization of an object of type \"cv1 T1\" by user-defined-conversion.\n[dcl.init.ref]/5.4.1", shape=box]
+            reference_temp_user_defined_conv -> reference_temp_user_defined_conv_is_ill_formed
+
+        reference_temp_user_defined_conv_is_ill_formed [label="Would the non-reference copy-initialization be ill-formed?\n[dcl.init.ref]/5.4.1", shape=diamond]
+            reference_temp_user_defined_conv_is_ill_formed -> reference_temp_user_defined_conv_ill_formed [label="Yes"]
+            reference_temp_user_defined_conv_is_ill_formed -> reference_temp_user_defined_conv_direct_initialize [label="No"]
+
+        reference_temp_user_defined_conv_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+
+        reference_temp_user_defined_conv_direct_initialize [label="The result of the call to the conversion function, as described by non-reference copy-initialization, is used to direct-initialize the reference. For the direct-initialization, user-defined conversions are not considered.\n[dcl.init.ref]/5.4.1", shape=box]
+            reference_temp_user_defined_conv_direct_initialize -> done
+
+        reference_temp_implicit_conv [label="The initializer expression is implicitly converted to a prvalue of type \"cv1 T1\".\n[dcl.init.ref]/5.4.2", shape=box]
+            reference_temp_implicit_conv -> reference_temp_implicit_conv_materialize
+
+        reference_temp_implicit_conv_materialize [label="The temporary is materialized.\n[dcl.init.ref]/5.4.2", shape=box]
+            reference_temp_implicit_conv_materialize -> reference_temp_implicit_conv_materialize_bind
+
+        reference_temp_implicit_conv_materialize_bind [label="The reference is bound to the result.\n[dcl.init.ref]/5.4.2", shape=box]
+            reference_temp_implicit_conv_materialize_bind -> reference_temp_implicit_conv_materialize_is_reference_related
+
+        reference_temp_implicit_conv_materialize_is_reference_related [label="Is T1 reference-related to T2?\n[dcl.init.ref]/5.4", shape=diamond]
+            reference_temp_implicit_conv_materialize_is_reference_related -> reference_temp_implicit_conv_materialize_is_cv_okay [label="Yes"]
+            reference_temp_implicit_conv_materialize_is_reference_related -> done [label="No"]
+
+        reference_temp_implicit_conv_materialize_is_cv_okay [label="Is cv1 more qualified than cv2?\n[dcl.init.ref]/5.4.3", shape=diamond]
+            reference_temp_implicit_conv_materialize_is_cv_okay -> reference_temp_implicit_conv_materialize_is_dest_rval [label="Yes"]
+            reference_temp_implicit_conv_materialize_is_cv_okay -> reference_temp_implicit_conv_materialize_cv_ill_formed [label="No"]
+
+        reference_temp_implicit_conv_materialize_cv_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+
+        reference_temp_implicit_conv_materialize_is_dest_rval [label="Is the destination an rvalue reference?\n[dcl.init.ref]/5.4.3", shape=diamond]
+            reference_temp_implicit_conv_materialize_is_dest_rval -> reference_temp_implicit_conv_materialize_is_source_lval [label="Yes"]
+            reference_temp_implicit_conv_materialize_is_dest_rval -> done [label="No"]
+
+        reference_temp_implicit_conv_materialize_is_source_lval [label="Is the initializer an lvalue?\n[dcl.init.ref]/5.4.4", shape=diamond]
+            reference_temp_implicit_conv_materialize_is_source_lval -> reference_temp_implicit_conv_materialize_source_lval_ill_formed [label="Yes"]
+            reference_temp_implicit_conv_materialize_is_source_lval -> done [label="No"]
+
+        reference_temp_implicit_conv_materialize_source_lval_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
     }
 }

@@ -7,32 +7,27 @@ DEFINE_DONE(`$1'`__generated_done')
 define(`QUESTION_NODE', `$1 [label="$2'`ifelse($3,`', `', `\n'$3)'`", shape=diamond]')
 define(`INSTRUCTION_NODE', `$1 [label="$2'`ifelse($3,`', `', `\n'$3)'`", shape=box]')
 
+define(`YN_QUESTION_NODE', `QUESTION_NODE($1, $2, $3)
+$1 -> $4 [label="Yes"]
+$1 -> $5 [label="No"]
+')
+
 digraph initialization {
     start [label="So you want to initialize something?\n[dcl.init]/16", style=filled, fillcolor=green, shape=box, color=green, fontcolor=white]
         start -> is_braced
 
-    QUESTION_NODE(is_braced, `Is the initializer in braces?', `[dcl.init]/16.1')
-        is_braced -> list_initialization_head [label="Yes"]
-        is_braced -> is_dest_reference [label="No"]
+    YN_QUESTION_NODE(is_braced, `Is the initializer in braces?', `[dcl.init]/16.1', list_initialization_head, is_dest_reference)
     
-    QUESTION_NODE(is_dest_reference, `Is the destination type a reference type?', `[dcl.init]/16.2')
-        is_dest_reference -> reference_initialization_head [label="Yes"]
-        is_dest_reference -> is_char_arr_init [label="No"]
+    YN_QUESTION_NODE(is_dest_reference, `Is the destination type a reference type?', `[dcl.init]/16.2', reference_initialization_head, is_char_arr_init)
     
     QUESTION_NODE(is_char_arr_init, `Is the destination type a char[] or a char*_t[]?', `[dcl.init]/16.3')
         is_char_arr_init -> is_char_arr_literal_init [label="Yes"]
     
-    QUESTION_NODE(is_char_arr_literal_init, `Is the initializer a string literal?', `[dcl.init]/16.3')
-        is_char_arr_literal_init -> string_literal_initialization_head [label="Yes"]
-        is_char_arr_literal_init -> is_initializer_empty_parens [label="No"]
+    YN_QUESTION_NODE(is_char_arr_literal_init, `Is the initializer a string literal?', `[dcl.init]/16.3', string_literal_initialization_head, is_initializer_empty_parens)
 
-    QUESTION_NODE(is_initializer_empty_parens, `Is the initializer \"()\"?', `[dcl.init]/16.4')
-        is_initializer_empty_parens -> value_initialization_head [label="Yes"]
-        is_initializer_empty_parens -> is_dest_array [label="No"]
+    YN_QUESTION_NODE(is_initializer_empty_parens, `Is the initializer \"()\"?', `[dcl.init]/16.4', value_initialization_head, is_dest_array)
 
-    QUESTION_NODE(is_dest_array, `Is the destination type an array?', `[dcl.init]/16.5')
-        is_dest_array -> array_initialization_head [label="Yes"]
-        is_dest_array -> is_dest_class_type [label="No"]
+    YN_QUESTION_NODE(is_dest_array, `Is the destination type an array?', `[dcl.init]/16.5', array_initialization_head, is_dest_class_type)
 
     subgraph array_initialization {
         INSTRUCTION_NODE(array_initialization_head, `Initialization as follows:', `[dcl.init]/16.5')
@@ -64,25 +59,15 @@ digraph initialization {
             LINK_TO_DONE(array_initialize_rest)
     }
 
-    QUESTION_NODE(is_dest_class_type, `Is the destination type a class type?', `[dcl.init]/16.6')
-        is_dest_class_type -> class_dest_initialization_head [label="Yes"]
-        is_dest_class_type -> is_source_class_type [label="No"]
+    YN_QUESTION_NODE(is_dest_class_type, `Is the destination type a class type?', `[dcl.init]/16.6', class_dest_initialization_head, is_source_class_type)
 
-    QUESTION_NODE(is_source_class_type, `Is the source type a class type?', `[dcl.init]/16.7')
-        is_source_class_type -> class_source_initialization_head [label="Yes"]
-        is_source_class_type -> is_direct_init_for_nullptr [label="No"]
+    YN_QUESTION_NODE(is_source_class_type, `Is the source type a class type?', `[dcl.init]/16.7', class_source_initialization_head, is_direct_init_for_nullptr)
 
-    QUESTION_NODE(is_direct_init_for_nullptr, `Is the initialization direct-initialization?', `[dcl.init]/16.8')
-        is_direct_init_for_nullptr -> is_source_type_nullptr [label="Yes"]
-        is_direct_init_for_nullptr -> standard_conv_seq_initialization_head [label="No"]    
+    YN_QUESTION_NODE(is_direct_init_for_nullptr, `Is the initialization direct-initialization?', `[dcl.init]/16.8', is_source_type_nullptr, standard_conv_seq_initialization_head)    
 
-    QUESTION_NODE(is_source_type_nullptr, `Is the source type std::nullptr_t?', `[dcl.init]/16.8')
-        is_source_type_nullptr -> is_dest_type_bool_for_nullptr [label="Yes"]
-        is_source_type_nullptr -> standard_conv_seq_initialization_head [label="No"]
+    YN_QUESTION_NODE(is_source_type_nullptr, `Is the source type std::nullptr_t?', `[dcl.init]/16.8', is_dest_type_bool_for_nullptr, standard_conv_seq_initialization_head)
 
-    QUESTION_NODE(is_dest_type_bool_for_nullptr, `Is the destination type bool?', `[dcl.init]/16.8')
-        is_dest_type_bool_for_nullptr -> nullptr_to_bool_init [label="Yes"]
-        is_dest_type_bool_for_nullptr -> standard_conv_seq_initialization_head [label="No"]
+    YN_QUESTION_NODE(is_dest_type_bool_for_nullptr, `Is the destination type bool?', `[dcl.init]/16.8', nullptr_to_bool_init, standard_conv_seq_initialization_head)
 
     INSTRUCTION_NODE(nullptr_to_bool_init, `The bool is initialized to false.', `[dcl.init]/16.8')
         LINK_TO_DONE(nullptr_to_bool_init)
@@ -91,20 +76,14 @@ digraph initialization {
         INSTRUCTION_NODE(class_dest_initialization_head, `Initialization as follows:', `[dcl.init]/16.6')
             class_dest_initialization_head -> class_is_initializer_prvalue
 
-        QUESTION_NODE(class_is_initializer_prvalue, `Is the initializer a prvalue?', `[dcl.init]/16.6.1')
-            class_is_initializer_prvalue -> class_is_initializer_prvalue_same_class [label="Yes"]
-            class_is_initializer_prvalue -> class_is_copy_init [label="No"]
+        YN_QUESTION_NODE(class_is_initializer_prvalue, `Is the initializer a prvalue?', `[dcl.init]/16.6.1', class_is_initializer_prvalue_same_class, class_is_copy_init)
 
-        QUESTION_NODE(class_is_initializer_prvalue_same_class, `Is the source type the same as the destination type (up to cv-qualification)?', `[dcl.init]/16.6.1')
-            class_is_initializer_prvalue_same_class -> class_initialize_by_prvalue [label="Yes"]
-            class_is_initializer_prvalue_same_class -> class_is_copy_init [label="No"]
+        YN_QUESTION_NODE(class_is_initializer_prvalue_same_class, `Is the source type the same as the destination type (up to cv-qualification)?', `[dcl.init]/16.6.1', class_initialize_by_prvalue, class_is_copy_init)
 
         INSTRUCTION_NODE(class_initialize_by_prvalue, `Use the prvalue to initialize the destination object.', `[dcl.init]/16.6.1')
             LINK_TO_DONE(class_initialize_by_prvalue)
 
-        QUESTION_NODE(class_is_copy_init, `Is the initialization copy-initialization?', `[dcl.init]/16.6.2')
-            class_is_copy_init -> class_is_copy_init_same_class [label="Yes"]
-            class_is_copy_init -> class_is_direct_init [label="No"]
+        YN_QUESTION_NODE(class_is_copy_init, `Is the initialization copy-initialization?', `[dcl.init]/16.6.2', class_is_copy_init_same_class, class_is_direct_init)
         
         INSTRUCTION_NODE(class_is_copy_init_same_class, `Is the source type the same class as the destination type (up to cv qualification)?', `[dcl.init]/16.6.2')
             class_is_copy_init_same_class -> class_consider_constructors [label="Yes"]
@@ -120,20 +99,14 @@ digraph initialization {
         INSTRUCTION_NODE(class_consider_constructors, `Enumerate constructors and select best through overload resolution.', `[dcl.init]/16.6.2')
             class_consider_constructors -> class_constructors_is_resolution_successful
 
-        QUESTION_NODE(class_constructors_is_resolution_successful, `Is overload resolution succesful?', `[dcl.init]/16.6.2')
-            class_constructors_is_resolution_successful -> class_constructors_use_selected [label="Yes"]
-            class_constructors_is_resolution_successful -> class_is_aggregate [label="No"]
+        YN_QUESTION_NODE(class_constructors_is_resolution_successful, `Is overload resolution succesful?', `[dcl.init]/16.6.2', class_constructors_use_selected, class_is_aggregate)
 
         INSTRUCTION_NODE(class_constructors_use_selected, `Use the selected constructor to initialize the object, using the expression or expression-list as argument(s).', `[dcl.init]/16.6.2.1')
             LINK_TO_DONE(class_constructors_use_selected)
 
-        QUESTION_NODE(class_is_aggregate, `Is the destination type an aggregate class?', `[dcl.init]/16.6.2.2')
-            class_is_aggregate -> class_aggregate_is_initializer_expr_list [label="Yes"]
-            class_is_aggregate -> class_ill_formed [label="No"]
+        YN_QUESTION_NODE(class_is_aggregate, `Is the destination type an aggregate class?', `[dcl.init]/16.6.2.2', class_aggregate_is_initializer_expr_list, class_ill_formed)
 
-        QUESTION_NODE(class_aggregate_is_initializer_expr_list, `Is the initializer a parenthesized expression-list?', `[dcl.init]/16.6.2.2')
-            class_aggregate_is_initializer_expr_list -> class_aggregate_paren_init_head [label="Yes"]
-            class_aggregate_is_initializer_expr_list -> class_ill_formed [label="No"]
+        YN_QUESTION_NODE(class_aggregate_is_initializer_expr_list, `Is the initializer a parenthesized expression-list?', `[dcl.init]/16.6.2.2', class_aggregate_paren_init_head, class_ill_formed)
 
         class_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
@@ -271,32 +244,20 @@ digraph initialization {
         INSTRUCTION_NODE(reference_source_type_defn, `Let the source type be \"cv2 T2\".', `[dcl.init.ref]/5')
             reference_source_type_defn -> reference_is_dest_lval
 
-        QUESTION_NODE(reference_is_dest_lval, `Is the destination type an lvalue reference?', `[dcl.init.ref]/5.1')
-            reference_is_dest_lval -> reference_dest_lval_is_source_lval [label="Yes"]
-            reference_is_dest_lval -> reference_dest_is_lval_non_const [label="No"]
+        YN_QUESTION_NODE(reference_is_dest_lval, `Is the destination type an lvalue reference?', `[dcl.init.ref]/5.1', reference_dest_lval_is_source_lval, reference_dest_is_lval_non_const)
 
-        QUESTION_NODE(reference_dest_lval_is_source_lval, `Is the initializer an lvalue?', `[dcl.init.ref]/5.1')
-            reference_dest_lval_is_source_lval -> reference_lvals_is_compatible [label="Yes"]
-            reference_dest_lval_is_source_lval -> reference_dest_lval_is_source_class [label="No"]
+        YN_QUESTION_NODE(reference_dest_lval_is_source_lval, `Is the initializer an lvalue?', `[dcl.init.ref]/5.1', reference_lvals_is_compatible, reference_dest_lval_is_source_class)
 
-        QUESTION_NODE(reference_lvals_is_compatible, `Is cv1 T1 reference-compatibile with cv2 T2?', `[dcl.init.ref]/5.1')
-            reference_lvals_is_compatible -> reference_lvals_compatible_bind [label="Yes"]
-            reference_lvals_is_compatible -> reference_dest_lval_is_source_class [label="No"]
+        YN_QUESTION_NODE(reference_lvals_is_compatible, `Is cv1 T1 reference-compatibile with cv2 T2?', `[dcl.init.ref]/5.1', reference_lvals_compatible_bind, reference_dest_lval_is_source_class)
 
         INSTRUCTION_NODE(reference_lvals_compatible_bind, `The destination reference is bound to the initializer lvalue (or appropriate base).', `[dcl.init.ref]/5.1')
             LINK_TO_DONE(reference_lvals_compatible_bind)
 
-        QUESTION_NODE(reference_dest_lval_is_source_class, `Is T2 a class type?', `[dcl.init.ref]/5.1.2')
-            reference_dest_lval_is_source_class -> reference_dest_lval_source_class_is_reference_related [label="Yes"]
-            reference_dest_lval_is_source_class -> reference_dest_is_lval_non_const [label="No"]
+        YN_QUESTION_NODE(reference_dest_lval_is_source_class, `Is T2 a class type?', `[dcl.init.ref]/5.1.2', reference_dest_lval_source_class_is_reference_related, reference_dest_is_lval_non_const)
 
-        QUESTION_NODE(reference_dest_lval_source_class_is_reference_related, `Is T1 reference-related to T2?', `[dcl.init.ref]/5.1.2')
-            reference_dest_lval_source_class_is_reference_related -> reference_dest_lval_source_class_is_convertible [label="No"]
-            reference_dest_lval_source_class_is_reference_related -> reference_dest_is_lval_non_const [label="Yes"]
+        YN_QUESTION_NODE(reference_dest_lval_source_class_is_reference_related, `Is T1 reference-related to T2?', `[dcl.init.ref]/5.1.2', reference_dest_is_lval_non_const, reference_dest_lval_source_class_is_convertible)
 
-        QUESTION_NODE(reference_dest_lval_source_class_is_convertible, `Is T2 convertible to an lvalue of type cv3 T3 such that cv1 T1 is reference-compatible with cv3 T3?', `[dcl.init.ref]/5.1.2')
-            reference_dest_lval_source_class_is_convertible -> reference_class_select_conversion [label="Yes"]
-            reference_dest_lval_source_class_is_convertible -> reference_dest_is_lval_non_const [label="No"]
+        YN_QUESTION_NODE(reference_dest_lval_source_class_is_convertible, `Is T2 convertible to an lvalue of type cv3 T3 such that cv1 T1 is reference-compatible with cv3 T3?', `[dcl.init.ref]/5.1.2', reference_class_select_conversion, reference_dest_is_lval_non_const)
 
         INSTRUCTION_NODE(reference_class_select_conversion, `Select the best applicable conversion function.', `[dcl.init.ref]/5.1.2')
             reference_class_select_conversion -> reference_class_do_initialization
@@ -304,45 +265,27 @@ digraph initialization {
         INSTRUCTION_NODE(reference_class_do_initialization, `The destination reference is bound to the result of the conversion (or appropriate base).', `[dcl.init.ref]/5.1')
             LINK_TO_DONE(reference_class_do_initialization)
 
-        QUESTION_NODE(reference_dest_is_lval_non_const, `Is the destination an lvalue reference to a non-const type?', `[dcl.init.ref]/5.2')
-            reference_dest_is_lval_non_const -> reference_dest_non_const_ill_formed [label="Yes"]
-            reference_dest_is_lval_non_const -> reference_dest_is_volatile [label="No"]
+        YN_QUESTION_NODE(reference_dest_is_lval_non_const, `Is the destination an lvalue reference to a non-const type?', `[dcl.init.ref]/5.2', reference_dest_non_const_ill_formed, reference_dest_is_volatile)
 
         reference_dest_non_const_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
-        QUESTION_NODE(reference_dest_is_volatile, `Is the destination's referenced type volatile-qualified', `[dcl.init.ref]/5.2')
-            reference_dest_is_volatile -> reference_dest_volatile_ill_formed [label="Yes"]
-            reference_dest_is_volatile -> reference_rval_conv_source_is_rvalue [label="No"]
+        YN_QUESTION_NODE(reference_dest_is_volatile, `Is the destination's referenced type volatile-qualified', `[dcl.init.ref]/5.2', reference_dest_volatile_ill_formed, reference_rval_conv_source_is_rvalue)
 
         reference_dest_volatile_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
-        QUESTION_NODE(reference_rval_conv_source_is_rvalue, `Is the initializer an rvalue?', `[dcl.init.ref]/5.3.1')
-            reference_rval_conv_source_is_rvalue -> reference_rval_conv_source_is_rvalue_bitfield [label="Yes"]
-            reference_rval_conv_source_is_rvalue -> reference_rval_conv_source_is_function_lval [label="No"]
+        YN_QUESTION_NODE(reference_rval_conv_source_is_rvalue, `Is the initializer an rvalue?', `[dcl.init.ref]/5.3.1', reference_rval_conv_source_is_rvalue_bitfield, reference_rval_conv_source_is_function_lval)
 
-        QUESTION_NODE(reference_rval_conv_source_is_rvalue_bitfield, `Is the initializer a bit-field?', `[dcl.init.ref]/5.3.1')
-            reference_rval_conv_source_is_rvalue_bitfield -> reference_rval_conv_source_rval_or_function_is_ref_compat [label="No"]
-            reference_rval_conv_source_is_rvalue_bitfield -> reference_rval_conv_source_is_function_lval [label="Yes"]
+        YN_QUESTION_NODE(reference_rval_conv_source_is_rvalue_bitfield, `Is the initializer a bit-field?', `[dcl.init.ref]/5.3.1', reference_rval_conv_source_is_function_lval, reference_rval_conv_source_rval_or_function_is_ref_compat)
 
-        QUESTION_NODE(reference_rval_conv_source_is_function_lval, `Is the initializer a function lvalue?', `[dcl.init.ref]/5.3.1')
-            reference_rval_conv_source_is_function_lval -> reference_rval_conv_source_rval_or_function_is_ref_compat [label="Yes"]
-            reference_rval_conv_source_is_function_lval -> reference_rval_conv_source_is_class [label="No"]
+        YN_QUESTION_NODE(reference_rval_conv_source_is_function_lval, `Is the initializer a function lvalue?', `[dcl.init.ref]/5.3.1', reference_rval_conv_source_rval_or_function_is_ref_compat, reference_rval_conv_source_is_class)
 
-        QUESTION_NODE(reference_rval_conv_source_rval_or_function_is_ref_compat, `Is cv1 T1 reference-compatible with cv2 T2?', `[dcl.init.ref]/5.3.1')
-            reference_rval_conv_source_rval_or_function_is_ref_compat -> reference_rval_conv_bind_direct [label="Yes"]
-            reference_rval_conv_source_rval_or_function_is_ref_compat -> reference_rval_conv_source_is_class [label="No"]
+        YN_QUESTION_NODE(reference_rval_conv_source_rval_or_function_is_ref_compat, `Is cv1 T1 reference-compatible with cv2 T2?', `[dcl.init.ref]/5.3.1', reference_rval_conv_bind_direct, reference_rval_conv_source_is_class)
 
-        QUESTION_NODE(reference_rval_conv_source_is_class, `Is T2 a class type?', `[dcl.init.ref]/5.3.2')
-            reference_rval_conv_source_is_class -> reference_rval_conv_source_class_is_ref_related [label="Yes"]
-            reference_rval_conv_source_is_class -> reference_temp_is_dest_class [label="No"]
+        YN_QUESTION_NODE(reference_rval_conv_source_is_class, `Is T2 a class type?', `[dcl.init.ref]/5.3.2', reference_rval_conv_source_class_is_ref_related, reference_temp_is_dest_class)
 
-        QUESTION_NODE(reference_rval_conv_source_class_is_ref_related, `Is T1 reference-related to T2?', `[dcl.init.ref]/5.3.2')
-            reference_rval_conv_source_class_is_ref_related -> reference_rval_conv_source_class_convertible_target [label="No"]
-            reference_rval_conv_source_class_is_ref_related -> reference_temp_is_dest_class [label="Yes"]
+        YN_QUESTION_NODE(reference_rval_conv_source_class_is_ref_related, `Is T1 reference-related to T2?', `[dcl.init.ref]/5.3.2', reference_temp_is_dest_class, reference_rval_conv_source_class_convertible_target)
 
-        QUESTION_NODE(reference_rval_conv_source_class_convertible_target, `Is the initializer convertible to an rvalue or function lvalue of type \"cv3 T3\", where \"cv1 T1\" is reference-compatible with \"cv3 T3\"?', `[dcl.init.ref]/5.3.2')
-            reference_rval_conv_source_class_convertible_target -> reference_rval_conv_bind_converted [label="Yes"]
-            reference_rval_conv_source_class_convertible_target -> reference_temp_is_dest_class [label="No"]
+        YN_QUESTION_NODE(reference_rval_conv_source_class_convertible_target, `Is the initializer convertible to an rvalue or function lvalue of type \"cv3 T3\", where \"cv1 T1\" is reference-compatible with \"cv3 T3\"?', `[dcl.init.ref]/5.3.2', reference_rval_conv_bind_converted, reference_temp_is_dest_class)
 
         INSTRUCTION_NODE(reference_rval_conv_bind_direct, `The converted initializer is the value of the initializer.', `[dcl.init.ref]/5.3')
             reference_rval_conv_bind_direct -> reference_rval_conv_is_converted_prval
@@ -350,9 +293,7 @@ digraph initialization {
         INSTRUCTION_NODE(reference_rval_conv_bind_converted, `The converted initializer is the result of the conversion.', `[dcl.init.ref]/5.3')
             reference_rval_conv_bind_converted -> reference_rval_conv_is_converted_prval
 
-        QUESTION_NODE(reference_rval_conv_is_converted_prval, `Is the converted initializer a prvalue?', `[dcl.init.ref]/5.3')
-            reference_rval_conv_is_converted_prval -> reference_rval_conv_prval_adjust_type [label="Yes"]
-        reference_rval_conv_is_converted_prval -> reference_rval_conv_bind_glval [label="No"]
+        YN_QUESTION_NODE(reference_rval_conv_is_converted_prval, `Is the converted initializer a prvalue?', `[dcl.init.ref]/5.3', reference_rval_conv_prval_adjust_type, reference_rval_conv_bind_glval)
 
         INSTRUCTION_NODE(reference_rval_conv_prval_adjust_type, `Its type T4 is adjusted to \"cv1 T4\".', `[dcl.init.ref]/5.3')
             reference_rval_conv_prval_adjust_type -> reference_rval_conv_prval_materialize
@@ -363,24 +304,16 @@ digraph initialization {
         INSTRUCTION_NODE(reference_rval_conv_bind_glval, `The destination reference is bound to the resulting glvalue.', `[dcl.init.ref]/5.3')
             LINK_TO_DONE(reference_rval_conv_bind_glval)
 
-        QUESTION_NODE(reference_temp_is_dest_class, `Is T1 a class type?', `[dcl.init.ref]/5.4.1')
-            reference_temp_is_dest_class -> reference_temp_is_related [label="Yes"]
-            reference_temp_is_dest_class -> reference_temp_is_source_class [label="No"]
+        YN_QUESTION_NODE(reference_temp_is_dest_class, `Is T1 a class type?', `[dcl.init.ref]/5.4.1', reference_temp_is_related, reference_temp_is_source_class)
 
-        QUESTION_NODE(reference_temp_is_source_class, `Is T2 a class type?', `[dcl.init.ref]/5.4.1')
-            reference_temp_is_source_class -> reference_temp_is_related [label="Yes"]
-            reference_temp_is_source_class -> reference_temp_implicit_conv [label="No"]
+        YN_QUESTION_NODE(reference_temp_is_source_class, `Is T2 a class type?', `[dcl.init.ref]/5.4.1', reference_temp_is_related, reference_temp_implicit_conv)
 
-        QUESTION_NODE(reference_temp_is_related, `Is T1 reference-related to T2?', `[dcl.init.ref]/5.4.1')
-            reference_temp_is_related -> reference_temp_user_defined_conv [label="No"]
-            reference_temp_is_related -> reference_temp_implicit_conv [label="Yes"]
+        YN_QUESTION_NODE(reference_temp_is_related, `Is T1 reference-related to T2?', `[dcl.init.ref]/5.4.1', reference_temp_implicit_conv, reference_temp_user_defined_conv)
 
         INSTRUCTION_NODE(reference_temp_user_defined_conv, `Consider user-defined conversions for the copy-initialization of an object of type \"cv1 T1\" by user-defined-conversion.', `[dcl.init.ref]/5.4.1')
             reference_temp_user_defined_conv -> reference_temp_user_defined_conv_is_ill_formed
 
-        QUESTION_NODE(reference_temp_user_defined_conv_is_ill_formed, `Would the non-reference copy-initialization be ill-formed?', `[dcl.init.ref]/5.4.1')
-            reference_temp_user_defined_conv_is_ill_formed -> reference_temp_user_defined_conv_ill_formed [label="Yes"]
-            reference_temp_user_defined_conv_is_ill_formed -> reference_temp_user_defined_conv_direct_initialize [label="No"]
+        YN_QUESTION_NODE(reference_temp_user_defined_conv_is_ill_formed, `Would the non-reference copy-initialization be ill-formed?', `[dcl.init.ref]/5.4.1', reference_temp_user_defined_conv_ill_formed, reference_temp_user_defined_conv_direct_initialize)
 
         reference_temp_user_defined_conv_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
@@ -400,9 +333,7 @@ digraph initialization {
             reference_temp_implicit_conv_materialize_is_reference_related -> reference_temp_implicit_conv_materialize_is_cv_okay [label="Yes"]
             LINK_TO_DONE(reference_temp_implicit_conv_materialize_is_reference_related, [label="No"])
 
-        QUESTION_NODE(reference_temp_implicit_conv_materialize_is_cv_okay, `Is cv1 more qualified than cv2?', `[dcl.init.ref]/5.4.3')
-            reference_temp_implicit_conv_materialize_is_cv_okay -> reference_temp_implicit_conv_materialize_is_dest_rval [label="Yes"]
-            reference_temp_implicit_conv_materialize_is_cv_okay -> reference_temp_implicit_conv_materialize_cv_ill_formed [label="No"]
+        YN_QUESTION_NODE(reference_temp_implicit_conv_materialize_is_cv_okay, `Is cv1 more qualified than cv2?', `[dcl.init.ref]/5.4.3', reference_temp_implicit_conv_materialize_is_dest_rval, reference_temp_implicit_conv_materialize_cv_ill_formed)
 
         reference_temp_implicit_conv_materialize_cv_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
@@ -421,28 +352,18 @@ digraph initialization {
         INSTRUCTION_NODE(value_initialization_head, `Value-initialization', `[dcl.init]/8')
             value_initialization_head -> value_is_class
 
-        QUESTION_NODE(value_is_class, `Is the type a class type?', `[dcl.init]/8.1')
-            value_is_class -> value_has_dflt_ctor [label="Yes"]
-            value_is_class -> value_is_array [label="No"]
+        YN_QUESTION_NODE(value_is_class, `Is the type a class type?', `[dcl.init]/8.1', value_has_dflt_ctor, value_is_array)
 
-        QUESTION_NODE(value_has_dflt_ctor, `Does the type have a default constructor?', `[dcl.init]/8.1.1')
-            value_has_dflt_ctor -> value_default_initialize [label="No"]
-            value_has_dflt_ctor -> value_has_deleted_dflt_ctor [label="Yes"]
+        YN_QUESTION_NODE(value_has_dflt_ctor, `Does the type have a default constructor?', `[dcl.init]/8.1.1', value_has_deleted_dflt_ctor, value_default_initialize)
 
-        QUESTION_NODE(value_has_deleted_dflt_ctor, `Does the type have a deleted default constructor?', `[dcl.init]/8.1.1')
-            value_has_deleted_dflt_ctor -> value_default_initialize [label="Yes"]
-            value_has_deleted_dflt_ctor -> value_has_user_dflt_ctor [label="No"]
+        YN_QUESTION_NODE(value_has_deleted_dflt_ctor, `Does the type have a deleted default constructor?', `[dcl.init]/8.1.1', value_default_initialize, value_has_user_dflt_ctor)
 
-        QUESTION_NODE(value_has_user_dflt_ctor, `Does the type have a user-provided default constructor?', `[dcl.init]/8.1.1')
-            value_has_user_dflt_ctor -> value_default_initialize [label="Yes"]
-            value_has_user_dflt_ctor -> value_zero_initialize_class [label="No"]
+        YN_QUESTION_NODE(value_has_user_dflt_ctor, `Does the type have a user-provided default constructor?', `[dcl.init]/8.1.1', value_default_initialize, value_zero_initialize_class)
 
         value_zero_initialize_class [label="The object is zero-initialized.", shape=box]
             value_zero_initialize_class -> value_check_default
 
-        QUESTION_NODE(value_is_array, `Is the type an array type?', `[dcl.init]/8.2')
-            value_is_array -> value_value_initialize_elements [label="Yes"]
-            value_is_array -> value_zero_initialize_fallback [label="No"]
+        YN_QUESTION_NODE(value_is_array, `Is the type an array type?', `[dcl.init]/8.2', value_value_initialize_elements, value_zero_initialize_fallback)
 
         value_value_initialize_elements [label="Each element is value-initialized.", shape=box]
             LINK_TO_DONE(value_value_initialize_elements)
@@ -465,36 +386,24 @@ digraph initialization {
         INSTRUCTION_NODE(list_initialization_head, `List-initialization', `[dcl.init.list]/3]')
             list_initialization_head -> list_has_designated_initializer
 
-        QUESTION_NODE(list_has_designated_initializer, `Does the braced-init-list contain a designated-initializer-list?', `[dcl.init.list]/3.1')
-            list_has_designated_initializer -> list_designated_initalizer_is_aggregate [label="Yes"]
-            list_has_designated_initializer -> list_is_aggregate_class [label="No"]
+        YN_QUESTION_NODE(list_has_designated_initializer, `Does the braced-init-list contain a designated-initializer-list?', `[dcl.init.list]/3.1', list_designated_initalizer_is_aggregate, list_is_aggregate_class)
 
-        QUESTION_NODE(list_designated_initalizer_is_aggregate, `Is the type an aggregate class?', `[dcl.init.list]/3.1')
-            list_designated_initalizer_is_aggregate -> list_designated_initializer_are_identifiers_valid [label="Yes"]
-            list_designated_initalizer_is_aggregate -> list_designated_initalizer_nonaggregate_ill_formed [label="No"]
+        YN_QUESTION_NODE(list_designated_initalizer_is_aggregate, `Is the type an aggregate class?', `[dcl.init.list]/3.1', list_designated_initializer_are_identifiers_valid, list_designated_initalizer_nonaggregate_ill_formed)
 
         list_designated_initalizer_nonaggregate_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
-        QUESTION_NODE(list_designated_initializer_are_identifiers_valid, `Do the designators form a subsequence of the ordered idenitifiers in the direct non-static data members of the type?', `[dcl.init.list]/3.1')
-            list_designated_initializer_are_identifiers_valid -> list_designated_initializer_aggregate_init [label="Yes"]
-            list_designated_initializer_are_identifiers_valid ->  list_designated_initalizer_initializers_ill_formed [label="No"]
+        YN_QUESTION_NODE(list_designated_initializer_are_identifiers_valid, `Do the designators form a subsequence of the ordered idenitifiers in the direct non-static data members of the type?', `[dcl.init.list]/3.1', list_designated_initializer_aggregate_init, list_designated_initalizer_initializers_ill_formed)
 
         list_designated_initalizer_initializers_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
         QUESTION_NODE(list_designated_initializer_aggregate_init, `Aggregate initialization is performed.', `[dcl.init.list]/3.1')
         list_designated_initializer_aggregate_init -> aggregate_initialization_head
 
-        QUESTION_NODE(list_is_aggregate_class, `Is the type an aggregate class?', `[dcl.init.list]/3.2')
-            list_is_aggregate_class -> list_aggregate_is_list_singleton [label="Yes"]
-            list_is_aggregate_class -> list_is_type_char_array [label="No"]
+        YN_QUESTION_NODE(list_is_aggregate_class, `Is the type an aggregate class?', `[dcl.init.list]/3.2', list_aggregate_is_list_singleton, list_is_type_char_array)
 
-        QUESTION_NODE(list_aggregate_is_list_singleton, `Does the initializer list have a single element?', `[dcl.init.list]/3.2')
-            list_aggregate_is_list_singleton -> list_aggregate_singleton_is_type_valid [label="Yes"]
-            list_aggregate_is_list_singleton -> list_is_type_char_array [label="No"]
+        YN_QUESTION_NODE(list_aggregate_is_list_singleton, `Does the initializer list have a single element?', `[dcl.init.list]/3.2', list_aggregate_singleton_is_type_valid, list_is_type_char_array)
 
-        QUESTION_NODE(list_aggregate_singleton_is_type_valid, `Does the sole element have type \"cv U\", where U is the initialized type or a type derived of it?', `[dcl.init.list]/3.2')
-            list_aggregate_singleton_is_type_valid -> list_aggregate_singleton_type_init_type [label="Yes"]
-            list_aggregate_singleton_is_type_valid -> list_is_type_char_array [label="No"]
+        YN_QUESTION_NODE(list_aggregate_singleton_is_type_valid, `Does the sole element have type \"cv U\", where U is the initialized type or a type derived of it?', `[dcl.init.list]/3.2', list_aggregate_singleton_type_init_type, list_is_type_char_array)
 
         QUESTION_NODE(list_aggregate_singleton_type_init_type, `What is the type of initialization?', `[dcl.init.list]/3.2')
             list_aggregate_singleton_type_init_type -> list_aggregate_singleton_type_copy [label="copy-list-initialization"]
@@ -506,13 +415,9 @@ digraph initialization {
         list_aggregate_singleton_type_direct [label="The object is direct-initialized from the sole element.\n[dcl.init.list]/3.2"]
             LINK_TO_DONE(list_aggregate_singleton_type_direct)
 
-        QUESTION_NODE(list_is_type_char_array, `Is the type a character array?', `[dcl.init.list]/3.3')
-            list_is_type_char_array -> list_char_array_is_singleton [label="Yes"]
-            list_is_type_char_array -> list_is_aggregate [label="No"]
+        YN_QUESTION_NODE(list_is_type_char_array, `Is the type a character array?', `[dcl.init.list]/3.3', list_char_array_is_singleton, list_is_aggregate)
 
-        QUESTION_NODE(list_char_array_is_singleton, `Does the iniitializer list have a single element?', `[dcl.init.list/]3.3')
-            list_char_array_is_singleton -> list_char_array_singleton_is_typed [label="Yes"]
-            list_char_array_is_singleton -> list_is_aggregate [label="No"]
+        YN_QUESTION_NODE(list_char_array_is_singleton, `Does the iniitializer list have a single element?', `[dcl.init.list/]3.3', list_char_array_singleton_is_typed, list_is_aggregate)
 
         list_char_array_singleton_is_typed [label="Is that element an appropriately-typed string-literal?\n[dcl.init.list]/3.3"]
             list_char_array_singleton_is_typed -> list_char_array_string_literal_init [label=""]
@@ -521,24 +426,16 @@ digraph initialization {
         list_char_array_string_literal_init [label="Initialization as in [dcl.init.string]\n[dcl.init.list]/3.3"]
             list_char_array_string_literal_init -> string_literal_initialization_head
 
-        QUESTION_NODE(list_is_aggregate, `Is the type an aggregate?', `[dcl.init.list]/3.4')
-            list_is_aggregate -> list_aggregate_aggregate_initialization [label="Yes"]
-            list_is_aggregate -> list_is_list_empty [label="No"]
+        YN_QUESTION_NODE(list_is_aggregate, `Is the type an aggregate?', `[dcl.init.list]/3.4', list_aggregate_aggregate_initialization, list_is_list_empty)
 
         INSTRUCTION_NODE(list_aggregate_aggregate_initialization, `Aggregate initialization is performed.', `[dcl.init.list]/3.4')
             list_aggregate_aggregate_initialization -> aggregate_initialization_head
 
-        QUESTION_NODE(list_is_list_empty, `Is the initializer list empty?', `[dcl.init.list]/3.5')
-            list_is_list_empty -> list_empty_is_class [label="Yes"]
-            list_is_list_empty -> list_dest_is_initializer_list [label="No"]
+        YN_QUESTION_NODE(list_is_list_empty, `Is the initializer list empty?', `[dcl.init.list]/3.5', list_empty_is_class, list_dest_is_initializer_list)
 
-        QUESTION_NODE(list_empty_is_class, `Is the destination type a class type?', `[dcl.init.list]/3.5')
-            list_empty_is_class -> list_empty_has_default_constructor [label="Yes"]
-            list_empty_is_class -> list_dest_is_initializer_list [label="No"]
+        YN_QUESTION_NODE(list_empty_is_class, `Is the destination type a class type?', `[dcl.init.list]/3.5', list_empty_has_default_constructor, list_dest_is_initializer_list)
 
-        QUESTION_NODE(list_empty_has_default_constructor, `Does the class have a default constructor?', `[dcl.init.list]/3.5')
-            list_empty_has_default_constructor -> list_empty_value_initialize [label="Yes"]
-            list_empty_has_default_constructor -> list_dest_is_initializer_list [label="No"]
+        YN_QUESTION_NODE(list_empty_has_default_constructor, `Does the class have a default constructor?', `[dcl.init.list]/3.5', list_empty_value_initialize, list_dest_is_initializer_list)
 
         INSTRUCTION_NODE(list_empty_value_initialize, `The object is value-initialized.', `[dcl.init.list]/3.5')
             LINK_TO_DONE(list_empty_value_initialize)
@@ -568,9 +465,7 @@ digraph initialization {
         list_initializer_list_init_object [label="The initializer_list is constructed to refer to the materialized array.", shape=box]
             LINK_TO_DONE(list_initializer_list_init_object)
 
-        QUESTION_NODE(list_is_class, `Is the type a class type?', `[dcl.init.list]/3.7')
-            list_is_class -> list_class_ctors [label="Yes"]
-            list_is_class -> list_is_enum [label="No"]
+        YN_QUESTION_NODE(list_is_class, `Is the type a class type?', `[dcl.init.list]/3.7', list_class_ctors, list_is_enum)
 
         INSTRUCTION_NODE(list_class_ctors, `Constructors are considered, and the best match is selected through overload resolution.', `[dcl.init.list]/3.7')
             list_class_ctors -> list_class_is_narrowing
@@ -581,31 +476,21 @@ digraph initialization {
 
         list_class_narrowing_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
-        QUESTION_NODE(list_is_enum, `Is the type an enumeration?', `[dcl.init.list]/3.8')
-            list_is_enum -> list_enum_is_fixed [label="Yes"]
-            list_is_enum -> list_final_is_singleton [label="No"]
+        YN_QUESTION_NODE(list_is_enum, `Is the type an enumeration?', `[dcl.init.list]/3.8', list_enum_is_fixed, list_final_is_singleton)
 
-        QUESTION_NODE(list_enum_is_fixed, `Does the enumeration have fixed underlying type?', `[dcl.init.list]/3.8')
-            list_enum_is_fixed -> list_enum_underlying_defn [label="Yes"]
-            list_enum_is_fixed -> list_final_is_singleton [label="No"]
+        YN_QUESTION_NODE(list_enum_is_fixed, `Does the enumeration have fixed underlying type?', `[dcl.init.list]/3.8', list_enum_underlying_defn, list_final_is_singleton)
 
         INSTRUCTION_NODE(list_enum_underlying_defn, `Let U be the underlying type.', `[dcl.init.list]/3.8')
             list_enum_underlying_defn -> list_enum_is_singleton
 
-        QUESTION_NODE(list_enum_is_singleton, `Does the initializer list have a single element?', `[dcl.init.list]/3.8')
-            list_enum_is_singleton -> list_enum_elem_defn [label="Yes"]
-            list_enum_is_singleton -> list_final_is_singleton [label="No"]
+        YN_QUESTION_NODE(list_enum_is_singleton, `Does the initializer list have a single element?', `[dcl.init.list]/3.8', list_enum_elem_defn, list_final_is_singleton)
 
         INSTRUCTION_NODE(list_enum_elem_defn, `Let v be that element.', `[dcl.init.list]/3.8')
             list_enum_elem_defn -> list_enum_is_convertible
 
-        QUESTION_NODE(list_enum_is_convertible, `Can v be implicitly converted to U?', `[dcl.init.list]/3.8')
-            list_enum_is_convertible -> list_enum_is_direct [label="Yes"]
-            list_enum_is_convertible -> list_final_is_singleton [label="No"]
+        YN_QUESTION_NODE(list_enum_is_convertible, `Can v be implicitly converted to U?', `[dcl.init.list]/3.8', list_enum_is_direct, list_final_is_singleton)
 
-        QUESTION_NODE(list_enum_is_direct, `Is the initialization direct-list-initialization?', `[dcl.init.list]/3.8')
-            list_enum_is_direct -> list_enum_is_narrowing [label="Yes"]
-            list_enum_is_direct -> list_final_is_singleton [label="No"]
+        YN_QUESTION_NODE(list_enum_is_direct, `Is the initialization direct-list-initialization?', `[dcl.init.list]/3.8', list_enum_is_narrowing, list_final_is_singleton)
 
         list_enum_is_narrowing [label="Is a narrowing conversion required to convert v to U?\n[dcl.init.list]/3.8"]
             list_enum_is_narrowing -> list_enum_narrowing_ill_formed [label="Yes"]
@@ -618,20 +503,14 @@ digraph initialization {
 
         // Final just because I couldn't come up with a better name for it. "Final" as in "last".
 
-        QUESTION_NODE(list_final_is_singleton, `Does the initializer list have a single element?', `[dcl.init.list]/3.9')
-            list_final_is_singleton -> list_final_singleton_type_defn [label="Yes"]
-            list_final_is_singleton -> list_ref_prvalue_is_ref [label="No"]
+        YN_QUESTION_NODE(list_final_is_singleton, `Does the initializer list have a single element?', `[dcl.init.list]/3.9', list_final_singleton_type_defn, list_ref_prvalue_is_ref)
 
         INSTRUCTION_NODE(list_final_singleton_type_defn, `Let E be the type of that element.', `[dcl.init.list]/3.9')
             list_final_singleton_type_defn -> list_final_singleton_is_dest_ref
 
-        QUESTION_NODE(list_final_singleton_is_dest_ref, `Is the destination type a reference?', `[dcl.init.list]/3.9')
-            list_final_singleton_is_dest_ref -> list_final_singleton_is_dest_ref_related [label="Yes"]
-            list_final_singleton_is_dest_ref -> list_final_singleton_type [label="No"]
+        YN_QUESTION_NODE(list_final_singleton_is_dest_ref, `Is the destination type a reference?', `[dcl.init.list]/3.9', list_final_singleton_is_dest_ref_related, list_final_singleton_type)
 
-        QUESTION_NODE(list_final_singleton_is_dest_ref_related, `Is the destination type's referenced type reference-related to E?', `[dcl.init.list]/3.9')
-            list_final_singleton_is_dest_ref_related -> list_final_singleton_type [label="Yes"]
-            list_final_singleton_is_dest_ref_related -> list_ref_prvalue_is_ref [label="No"]
+        YN_QUESTION_NODE(list_final_singleton_is_dest_ref_related, `Is the destination type's referenced type reference-related to E?', `[dcl.init.list]/3.9', list_final_singleton_type, list_ref_prvalue_is_ref)
 
         list_final_singleton_type [label="What is the type of initialization?\n[dcl.init.list]/3.9"]
             list_final_singleton_type -> list_final_singleton_direct [label="direct-list-initialization"]
@@ -649,16 +528,12 @@ digraph initialization {
 
         list_final_singleton_narrowing_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
-        QUESTION_NODE(list_ref_prvalue_is_ref, `Is the destination type a reference type?', `[dcl.init.list]/3.10')
-            list_ref_prvalue_is_ref -> list_ref_prvalue_prvalue_generated [label="Yes"]
-            list_ref_prvalue_is_ref -> list_final_is_empty [label="No"]
+        YN_QUESTION_NODE(list_ref_prvalue_is_ref, `Is the destination type a reference type?', `[dcl.init.list]/3.10', list_ref_prvalue_prvalue_generated, list_final_is_empty)
 
         INSTRUCTION_NODE(list_ref_prvalue_prvalue_generated, `A prvalue is generated.', `[dcl.init.list]/3.10')
             list_ref_prvalue_prvalue_generated -> list_ref_prvalue_type_is_unknown_bound
 
-        QUESTION_NODE(list_ref_prvalue_type_is_unknown_bound, `Is the destination type an array of unknown bound?', `[dcl.init.list]/3.10')
-            list_ref_prvalue_type_is_unknown_bound -> list_ref_prvalue_type_unknown_bound [label="Yes"]
-            list_ref_prvalue_type_is_unknown_bound -> list_ref_prvalue_type_normal [label="No"]
+        YN_QUESTION_NODE(list_ref_prvalue_type_is_unknown_bound, `Is the destination type an array of unknown bound?', `[dcl.init.list]/3.10', list_ref_prvalue_type_unknown_bound, list_ref_prvalue_type_normal)
 
         INSTRUCTION_NODE(list_ref_prvalue_type_normal, `The type of the prvalue is the type referenced by the destination type.', `[dcl.init.list]/3.10')
             list_ref_prvalue_type_normal -> list_ref_prvalue_init_prvalue
@@ -673,9 +548,7 @@ digraph initialization {
             LINK_TO_DONE(list_ref_prvalue_init_ref)
 
         // Final, again, as in "last".
-        QUESTION_NODE(list_final_is_empty, `Is the initializer list empty?', `[dcl.init.list]/3.11')
-            list_final_is_empty -> list_final_empty_value_init [label="Yes"]
-            list_final_is_empty -> list_nothing_else_ill_formed [label="No"]
+        YN_QUESTION_NODE(list_final_is_empty, `Is the initializer list empty?', `[dcl.init.list]/3.11', list_final_empty_value_init, list_nothing_else_ill_formed)
 
         INSTRUCTION_NODE(list_final_empty_value_init, `The object is value-initialized.', `[dcl.init.list]/3.12')
             LINK_TO_DONE(list_final_empty_value_init)

@@ -379,7 +379,7 @@ digraph initialization {
     }
 
     subgraph list_initialization {
-        INSTRUCTION_NODE(list_initialization_head, `List-initialization', `[dcl.init.list]/3]')
+        INSTRUCTION_NODE(list_initialization_head, `List-initialization', `[dcl.init.list]/3')
             list_initialization_head -> list_has_designated_initializer
 
         YN_QUESTION_NODE(list_has_designated_initializer, `Does the braced-init-list contain a designated-initializer-list?', `[dcl.init.list]/3.1', list_designated_initalizer_is_aggregate, list_is_aggregate_class)

@@ -178,8 +178,7 @@ digraph initialization {
         string_literal_kind_char -> string_literal_kind_char8 -> string_literal_kind_char16 -> string_literal_kind_char32 -> string_literal_kind_wchar -> string_literal_kind_other [style=invis]
         }
 
-        string_literal_kind_other -> string_literal_wrong_kind
-        string_literal_wrong_kind  [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+        LINK_TO_ILL_FORMED(string_literal_kind_other)
 
         { string_literal_kind_char, string_literal_kind_char8, string_literal_kind_char16, string_literal_kind_char32, string_literal_kind_wchar } -> string_literal_initialize_first
 
@@ -205,7 +204,7 @@ digraph initialization {
 
         ILL_FORMED_NODE(class_source_conversion_ill_formed)
 
-        class_source_initialize [label="Use the result of the conversion to convert the initializer to the object being initialized."]
+        INSTRUCTION_NODE(class_source_initialize, `Use the result of the conversion to convert the initializer to the object being initialized.')
             LINK_TO_DONE(class_source_initialize)
     }
 
@@ -405,21 +404,19 @@ digraph initialization {
             list_aggregate_singleton_type_init_type -> list_aggregate_singleton_type_copy [label="copy-list-initialization"]
             list_aggregate_singleton_type_init_type -> list_aggregate_singleton_type_direct [label="direct-list-initialization"]
 
-        list_aggregate_singleton_type_copy [label="The object is copy-initialized from the sole element.\n[dcl.init.list]/3.2"]
+        INSTRUCTION_NODE(list_aggregate_singleton_type_copy, `The object is copy-initialized from the sole element.', `[dcl.init.list]/3.2')
             LINK_TO_DONE(list_aggregate_singleton_type_copy)
 
-        list_aggregate_singleton_type_direct [label="The object is direct-initialized from the sole element.\n[dcl.init.list]/3.2"]
+        INSTRUCTION_NODE(list_aggregate_singleton_type_direct, `The object is direct-initialized from the sole element.', `[dcl.init.list]/3.2')
             LINK_TO_DONE(list_aggregate_singleton_type_direct)
 
         YN_QUESTION_NODE(list_is_type_char_array, `Is the type a character array?', `[dcl.init.list]/3.3', list_char_array_is_singleton, list_is_aggregate)
 
         YN_QUESTION_NODE(list_char_array_is_singleton, `Does the iniitializer list have a single element?', `[dcl.init.list/]3.3', list_char_array_singleton_is_typed, list_is_aggregate)
 
-        list_char_array_singleton_is_typed [label="Is that element an appropriately-typed string-literal?\n[dcl.init.list]/3.3"]
-            list_char_array_singleton_is_typed -> list_char_array_string_literal_init [label=""]
-            list_char_array_singleton_is_typed -> list_is_aggregate [label="No"]
+        YN_QUESTION_NODE(list_char_array_singleton_is_typed, `Is that element an appropriately-typed string-literal?', `[dcl.init.list]/3.3', list_char_array_string_literal_init, list_is_aggregate)
 
-        list_char_array_string_literal_init [label="Initialization as in [dcl.init.string]\n[dcl.init.list]/3.3"]
+        INSTRUCTION_NODE(list_char_array_string_literal_init, `Initialization as in [dcl.init.string]', `[dcl.init.list]/3.3')
             list_char_array_string_literal_init -> string_literal_initialization_head
 
         YN_QUESTION_NODE(list_is_aggregate, `Is the type an aggregate?', `[dcl.init.list]/3.4', list_aggregate_aggregate_initialization, list_is_list_empty)
@@ -436,9 +433,7 @@ digraph initialization {
         INSTRUCTION_NODE(list_empty_value_initialize, `The object is value-initialized.', `[dcl.init.list]/3.5')
             LINK_TO_DONE(list_empty_value_initialize)
 
-        list_dest_is_initializer_list [label="Is the type a specialization of std::initializer_list?\n[dcl.init.list]/3.6"]
-            list_dest_is_initializer_list -> list_initializer_list_init [label="Yes"]
-            list_dest_is_initializer_list -> list_is_class [label="No"]
+        YN_QUESTION_NODE(list_dest_is_initializer_list, `Is the type a specialization of std::initializer_list?', `[dcl.init.list]/3.6', list_initializer_list_init, list_is_class)
 
         INSTRUCTION_NODE(list_initializer_list_init, `Initialized as follows:', `[dcl.init.list]/5')
             list_initializer_list_init -> list_initializer_list_n_defn
@@ -502,7 +497,7 @@ digraph initialization {
 
         YN_QUESTION_NODE(list_final_singleton_is_dest_ref_related, `Is the destination type's referenced type reference-related to E?', `[dcl.init.list]/3.9', list_final_singleton_type, list_ref_prvalue_is_ref)
 
-        list_final_singleton_type [label="What is the type of initialization?\n[dcl.init.list]/3.9"]
+        QUESTION_NODE(list_final_singleton_type, `What is the type of initialization?', `[dcl.init.list]/3.9')
             list_final_singleton_type -> list_final_singleton_direct [label="direct-list-initialization"]
             list_final_singleton_type -> list_final_singleton_copy [label="copy-list-initialization"]
 

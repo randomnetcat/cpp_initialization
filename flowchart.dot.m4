@@ -33,29 +33,29 @@ digraph initialization {
         INSTRUCTION_NODE(array_initialization_head, `Initialization as follows:', `[dcl.init]/16.5')
             array_initialization_head -> array_k_definition
         
-        array_k_definition [label="Let k be the number of elements in the initializer's expression list.", shape=box]
+        INSTRUCTION_NODE(array_k_definition, `Let k be the number of elements in the initializer's expression list.')
             array_k_definition -> array_is_unsized
 
-        array_is_unsized [label = "Is destination type an array of unknown bound?", shape=diamond]
+        QUESTION_NODE(array_is_unsized, `Is destination type an array of unknown bound?')
             array_is_unsized -> array_unsized_n_defn [label = "Yes"]
             array_is_unsized -> array_sized_n_defn [label = "No"]
         
-        array_unsized_n_defn [label = "Let n be k.", shape=box]
+        INSTRUCTION_NODE(array_unsized_n_defn, `Let n be k.')
             array_unsized_n_defn -> array_initialize_first_k
 
-        array_sized_n_defn [label = "Let n be the array size of the destination type.", shape=box]
+        INSTRUCTION_NODE(array_sized_n_defn, `Let n be the array size of the destination type.')
             array_sized_n_defn -> array_k_gt_n
 
-        array_k_gt_n [label = "Is k > n?", shape=diamond]
+        QUESTION_NODE(array_k_gt_n, `Is k > n?')
             array_k_gt_n -> array_k_gt_n_ill_formed [label = "Yes"]
             array_k_gt_n -> array_initialize_first_k [label = "No"]    
 
         array_k_gt_n_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
-        array_initialize_first_k [label = "Copy-initialize the first k array elements from the expressions in the initailizer.", shape=box]
+        INSTRUCTION_NODE(array_initialize_first_k, `Copy-initialize the first k array elements from the expressions in the initailizer.')
             array_initialize_first_k -> array_initialize_rest
 
-        array_initialize_rest [label = "Value-initialize the remaining elements.", shape=box]
+        INSTRUCTION_NODE(array_initialize_rest, `Value-initialize the remaining elements.')
             LINK_TO_DONE(array_initialize_rest)
     }
 
@@ -114,20 +114,20 @@ digraph initialization {
             INSTRUCTION_NODE(class_aggregate_paren_init_head, `Initialized as follows:', `[dcl.init]/16.6.2.2')
                 class_aggregate_paren_init_head -> class_aggregate_paren_n_defn
 
-            class_aggregate_paren_n_defn [label="Let n be the number of elements in the aggregate.", shape=box]
+            INSTRUCTION_NODE(class_aggregate_paren_n_defn, `Let n be the number of elements in the aggregate.')
                 class_aggregate_paren_n_defn -> class_aggregate_paren_k_defn
 
-            class_aggregate_paren_k_defn [label="Let k b ethe number of elements in the initializer's expression list.", shape=box]
+            INSTRUCTION_NODE(class_aggregate_paren_k_defn, `Let k b ethe number of elements in the initializer's expression list.')
                 class_aggregate_paren_k_defn -> class_aggregate_paren_is_k_gt_n
 
-            class_aggregate_paren_is_k_gt_n [label="Is k > n?", shape=diamond]
+            QUESTION_NODE(class_aggregate_paren_is_k_gt_n, `Is k > n?')
                 class_aggregate_paren_is_k_gt_n -> class_aggregate_paren_ill_formed [label="Yes"]
                 class_aggregate_paren_is_k_gt_n -> class_aggregate_paren_initialize_first_k [label="No"]
 
-            class_aggregate_paren_initialize_first_k [label="Copy-initialize the first k elements from the expression list.", shape=box]
+            INSTRUCTION_NODE(class_aggregate_paren_initialize_first_k, `Copy-initialize the first k elements from the expression list.')
                 class_aggregate_paren_initialize_first_k -> class_aggregate_paren_initialize_rest
 
-            class_aggregate_paren_initialize_rest [label="Use default member initializer or value-initialize the remaining elements.", shape=box]
+            INSTRUCTION_NODE(class_aggregate_paren_initialize_rest, `Use default member initializer or value-initialize the remaining elements.')
                 LINK_TO_DONE(class_aggregate_paren_initialize_rest)
 
             class_aggregate_paren_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
@@ -137,17 +137,17 @@ digraph initialization {
             INSTRUCTION_NODE(class_user_defined_conv_head, `Initialization as follows:', `[dcl.init]/16.6.3')
                 class_user_defined_conv_head -> class_user_defined_conv_overload_resolution
 
-            class_user_defined_conv_overload_resolution [label="Use overload resolution to select the best user-defined conversion that can convert from the source type to the destination type or (when a conversion function is used) to a derived class thereof.", shape=box]
+            INSTRUCTION_NODE(class_user_defined_conv_overload_resolution, `Use overload resolution to select the best user-defined conversion that can convert from the source type to the destination type or (when a conversion function is used) to a derived class thereof.')
                 class_user_defined_conv_overload_resolution -> class_user_defined_conv_is_possible
             
-            class_user_defined_conv_is_possible [label="Is the conversion ambiguous or impossible?", shape=diamond]
+            QUESTION_NODE(class_user_defined_conv_is_possible, `Is the conversion ambiguous or impossible?')
                 class_user_defined_conv_is_possible -> class_user_defined_conv_ill_formed [label="Yes"]
                 class_user_defined_conv_is_possible -> class_user_defined_conv_do_conversion [label="No"]
 
-            class_user_defined_conv_do_conversion [label = "Call the selected function with the initializer-expression as its argument.", shape=box]
+            INSTRUCTION_NODE(class_user_defined_conv_do_conversion, `Call the selected function with the initializer-expression as its argument.')
                 class_user_defined_conv_do_conversion -> class_user_defined_conv_initialize
 
-            class_user_defined_conv_initialize [label="Direct-initialize the destination object with the result of the conversion.", shape=box]
+            INSTRUCTION_NODE(class_user_defined_conv_initialize, `Direct-initialize the destination object with the result of the conversion.')
                 LINK_TO_DONE(class_user_defined_conv_initialize)
 
             class_user_defined_conv_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
@@ -158,7 +158,7 @@ digraph initialization {
         INSTRUCTION_NODE(string_literal_initialization_head, `Initialization as follows:', `[dcl.init.string]')
             string_literal_initialization_head -> string_literal_verify_kind
 
-        string_literal_verify_kind [label="Verify array type and literal type match.", shape=box]
+        INSTRUCTION_NODE(string_literal_verify_kind, `Verify array type and literal type match.')
             string_literal_verify_kind -> { string_literal_kind_char, string_literal_kind_char8, string_literal_kind_char16, string_literal_kind_char32, string_literal_kind_wchar, string_literal_kind_other }
 
         {
@@ -179,10 +179,10 @@ digraph initialization {
 
         { string_literal_kind_char, string_literal_kind_char8, string_literal_kind_char16, string_literal_kind_char32, string_literal_kind_wchar } -> string_literal_initialize_first
 
-        string_literal_initialize_first [label="Initialize the first elements of the array with successive values from the string literal.", shape=box]
+        INSTRUCTION_NODE(string_literal_initialize_first, `Initialize the first elements of the array with successive values from the string literal.')
             string_literal_initialize_first -> string_literal_has_too_many
 
-        string_literal_has_too_many [label="Are there more initializers than array elements?", shape=diamond]
+        QUESTION_NODE(string_literal_has_too_many, `Are there more initializers than array elements?')
             string_literal_has_too_many -> string_literal_ill_formed_too_many [label="Yes"]
             string_literal_has_too_many -> string_literal_initialize_rest [label="No"]
 
@@ -196,10 +196,10 @@ digraph initialization {
         INSTRUCTION_NODE(class_source_initialization_head, `Initialized as follows:', `[dcl.init]/16.7')
             class_source_initialization_head -> class_source_consider_conversion_functions
 
-        class_source_consider_conversion_functions [label="Use overload resolution to select the best applicable conversion function.", shape=box]
+        INSTRUCTION_NODE(class_source_consider_conversion_functions, `Use overload resolution to select the best applicable conversion function.')
             class_source_consider_conversion_functions -> class_source_conversion_is_impossible
 
-        class_source_conversion_is_impossible [label="Is the conversion impossible or ambiguous?", shape=diamond]
+        QUESTION_NODE(class_source_conversion_is_impossible, `Is the conversion impossible or ambiguous?')
             class_source_conversion_is_impossible -> class_source_conversion_ill_formed [label="Yes"]
             class_source_conversion_is_impossible -> class_source_initialize [label="No"]
 
@@ -213,24 +213,24 @@ digraph initialization {
         INSTRUCTION_NODE(standard_conv_seq_initialization_head, `The object is initialized as follows:', `[dcl.init]/6.9')
             standard_conv_seq_initialization_head -> standard_conv_seq_do_init
 
-        standard_conv_seq_do_init [label="Initialize the object using the value of the initializer expression, using a standard conversion sequence if necessary, not considering any user-defined conversions.", shape=box]
+        INSTRUCTION_NODE(standard_conv_seq_do_init, `Initialize the object using the value of the initializer expression, using a standard conversion sequence if necessary, not considering any user-defined conversions.')
             standard_conv_seq_do_init -> standard_conv_seq_is_possible
 
-        standard_conv_seq_is_possible [label="Is the conversion possible?", shape=diamond]
+        QUESTION_NODE(standard_conv_seq_is_possible, `Is the conversion possible?')
             standard_conv_seq_is_possible -> standard_conv_seq_ill_formed [label="No"]
             standard_conv_seq_is_possible -> standard_conv_seq_is_bitfield [label="Yes"]
 
         standard_conv_seq_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
-        standard_conv_seq_is_bitfield [label="Is the object to be initialized a bit-field?", shape=diamond]
+        QUESTION_NODE(standard_conv_seq_is_bitfield, `Is the object to be initialized a bit-field?')
             standard_conv_seq_is_bitfield -> standard_conv_seq_is_bitfield_in_range [label="Yes"]
             LINK_TO_DONE(standard_conv_seq_is_bitfield, [label="No"])
 
-        standard_conv_seq_is_bitfield_in_range [label="Is the value representable by the bit-field?", shape=diamond]
+        QUESTION_NODE(standard_conv_seq_is_bitfield_in_range, `Is the value representable by the bit-field?')
             standard_conv_seq_is_bitfield_in_range -> standard_conv_seq_bitfield_imp_def [label="No"]
             LINK_TO_DONE(standard_conv_seq_is_bitfield_in_range, [label="Yes"])
 
-        standard_conv_seq_bitfield_imp_def [label="The value of the bit-field is implementation-defined.", shape=box]
+        INSTRUCTION_NODE(standard_conv_seq_bitfield_imp_def, `The value of the bit-field is implementation-defined.')
             LINK_TO_DONE(standard_conv_seq_bitfield_imp_def)
     }
 
@@ -360,15 +360,15 @@ digraph initialization {
 
         YN_QUESTION_NODE(value_has_user_dflt_ctor, `Does the type have a user-provided default constructor?', `[dcl.init]/8.1.1', value_default_initialize, value_zero_initialize_class)
 
-        value_zero_initialize_class [label="The object is zero-initialized.", shape=box]
+        INSTRUCTION_NODE(value_zero_initialize_class, `The object is zero-initialized.')
             value_zero_initialize_class -> value_check_default
 
         YN_QUESTION_NODE(value_is_array, `Is the type an array type?', `[dcl.init]/8.2', value_value_initialize_elements, value_zero_initialize_fallback)
 
-        value_value_initialize_elements [label="Each element is value-initialized.", shape=box]
+        INSTRUCTION_NODE(value_value_initialize_elements, `Each element is value-initialized.')
             LINK_TO_DONE(value_value_initialize_elements)
 
-        value_zero_initialize_fallback [label="The object is zero-initialized.", shape=box]
+        INSTRUCTION_NODE(value_zero_initialize_fallback, `The object is zero-initialized.')
             LINK_TO_DONE(value_zero_initialize_fallback)
 
         INSTRUCTION_NODE(value_default_initialize, `The object is default-initialized.', `[dcl.init]/8.1.*')
@@ -447,22 +447,22 @@ digraph initialization {
         INSTRUCTION_NODE(list_initializer_list_init, `Initialized as follows:', `[dcl.init.list]/5')
             list_initializer_list_init -> list_initializer_list_n_defn
 
-        list_initializer_list_n_defn [label="Let N be the number of elements in the initalizer list.", shape=box]
+        INSTRUCTION_NODE(list_initializer_list_n_defn, `Let N be the number of elements in the initalizer list.')
             list_initializer_list_n_defn -> list_initializer_list_materialize_array
 
-        list_initializer_list_materialize_array [label="Where type is std::initializer_list<E>, a prvalue of type \"array of N const E\" is materialized.", shape=box]
+        INSTRUCTION_NODE(list_initializer_list_materialize_array, `Where type is std::initializer_list<E>, a prvalue of type \"array of N const E\" is materialized.')
             list_initializer_list_materialize_array -> list_initializer_list_init_array
 
-        list_initializer_list_init_array [label="Each element of the array is copy-initialized with the corresponding element of the initializer list.", shape=box]
+        INSTRUCTION_NODE(list_initializer_list_init_array, `Each element of the array is copy-initialized with the corresponding element of the initializer list.')
             list_initializer_list_init_array -> list_initializer_list_is_narrowing
 
-        list_initializer_list_is_narrowing [label="Is a narrowing conversion required to initialize any of the elements?", shape=diamond]
+        QUESTION_NODE(list_initializer_list_is_narrowing, `Is a narrowing conversion required to initialize any of the elements?')
             list_initializer_list_is_narrowing -> list_initializer_list_narrowing_ill_formed [label="Yes"]
             list_initializer_list_is_narrowing -> list_initializer_list_init_object [label="No"]
 
         list_initializer_list_narrowing_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
-        list_initializer_list_init_object [label="The initializer_list is constructed to refer to the materialized array.", shape=box]
+        INSTRUCTION_NODE(list_initializer_list_init_object, `The initializer_list is constructed to refer to the materialized array.')
             LINK_TO_DONE(list_initializer_list_init_object)
 
         YN_QUESTION_NODE(list_is_class, `Is the type a class type?', `[dcl.init.list]/3.7', list_class_ctors, list_is_enum)
@@ -496,7 +496,7 @@ digraph initialization {
             list_enum_is_narrowing -> list_enum_narrowing_ill_formed [label="Yes"]
             list_enum_is_narrowing -> list_enum_initialization [label="No"]
 
-        list_enum_initialization [label="The object is initialized with the value T(u).", shape=box]
+        INSTRUCTION_NODE(list_enum_initialization, `The object is initialized with the value T(u).')
             LINK_TO_DONE(list_enum_initialization)
 
         list_enum_narrowing_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]

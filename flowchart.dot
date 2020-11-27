@@ -61,6 +61,22 @@ digraph initialization {
 
     is_source_class_type [label="Is the source type a class type?\n[dcl.init]/16.7", shape=diamond]
         is_source_class_type -> class_source_initialization_head [label="Yes"]
+        is_source_class_type -> is_direct_init_for_nullptr [label="No"]
+
+    is_direct_init_for_nullptr [label="Is the initialization direct-initialization?\n[dcl.init]/16.8", shape=diamond]
+        is_direct_init_for_nullptr -> is_source_type_nullptr [label="Yes"]
+        is_direct_init_for_nullptr -> standard_conv_seq_initialization_head [label="No"]    
+
+    is_source_type_nullptr [label="Is the source type std::nullptr_t?\n[dcl.init]/16.8", shape=diamond]
+        is_source_type_nullptr -> is_dest_type_bool_for_nullptr [label="Yes"]
+        is_source_type_nullptr -> standard_conv_seq_initialization_head [label="No"]
+
+    is_dest_type_bool_for_nullptr [label="Is the destination type bool?\n[dcl.init]/16.8", shape=diamond]
+        is_dest_type_bool_for_nullptr -> nullptr_to_bool_init [label="Yes"]
+        is_dest_type_bool_for_nullptr -> standard_conv_seq_initialization_head [label="No"]
+
+    nullptr_to_bool_init [label="The bool is initialized to false.\n[dcl.init]/16.8", shape=box]
+        nullptr_to_bool_init -> done
 
     subgraph class_dest_initialization {
         class_dest_initialization_head [label="Initialization as follows:\n[dcl.init]/16.6", shape=box]
@@ -209,5 +225,30 @@ digraph initialization {
 
         class_source_initialize [label="Use the result of the conversion to convert the initializer to the object being initialized."]
             class_source_initialize -> done
+    }
+
+    subgraph standard_conv_seq_initialization {
+        standard_conv_seq_initialization_head [label="The object is initialized as follows:\n[dcl.init]/6.9", shape=box]
+            standard_conv_seq_initialization_head -> standard_conv_seq_do_init
+
+        standard_conv_seq_do_init [label="Initialize the object using the value of the initializer expression, using a standard conversion sequence if necessary, not considering any user-defined conversions.", shape=box]
+            standard_conv_seq_do_init -> standard_conv_seq_is_possible
+
+        standard_conv_seq_is_possible [label="Is the conversion possible?", shape=diamond]
+            standard_conv_seq_is_possible -> standard_conv_seq_ill_formed [label="No"]
+            standard_conv_seq_is_possible -> standard_conv_seq_is_bitfield [label="Yes"]
+
+        standard_conv_seq_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+
+        standard_conv_seq_is_bitfield [label="Is the object to be initialized a bit-field?", shape=diamond]
+            standard_conv_seq_is_bitfield -> standard_conv_seq_is_bitfield_in_range [label="Yes"]
+            standard_conv_seq_is_bitfield -> done [label="No"]
+
+        standard_conv_seq_is_bitfield_in_range [label="Is the value representable by the bit-field?", shape=diamond]
+            standard_conv_seq_is_bitfield_in_range -> standard_conv_seq_bitfield_imp_def [label="No"]
+            standard_conv_seq_is_bitfield_in_range -> done [label="Yes"]
+
+        standard_conv_seq_bitfield_imp_def [label="The value of the bit-field is implementation-defined.", shape=box]
+            standard_conv_seq_bitfield_imp_def -> done
     }
 }

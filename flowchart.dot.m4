@@ -1,3 +1,9 @@
+define(`DEFINE_DONE', `$1 [label="Done", style=filled, fillcolor=green, shape=box, color=green, fontcolor=white]
+')
+define(`LINK_TO_DONE', `$1 -> $1'`__generated_done '`$2'`
+DEFINE_DONE(`$1'`__generated_done')
+')
+
 digraph initialization {
     start [label="So you want to initialize something?\n[dcl.init]/16", style=filled, fillcolor=green, shape=box, color=green, fontcolor=white]
         start -> is_braced

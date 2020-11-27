@@ -3,7 +3,7 @@ digraph initialization {
         start -> is_braced
 
     is_braced [label="Is the initializer in braces?\n[dcl.init]/16.1", shape=diamond]
-        is_braced -> list_initialization [label="Yes"]
+        is_braced -> list_initialization_head [label="Yes"]
         is_braced -> is_dest_reference [label="No"]
     
     is_dest_reference [label="Is the destination type a reference type?\n[dcl.init]/16.2", shape=diamond]
@@ -450,5 +450,228 @@ digraph initialization {
         value_has_nontrivial_dflt_ctor [label="Does the type have a non-trivial default constructor?\n[dcl.init]/8.1.2", shape=diamond]
             value_has_nontrivial_dflt_ctor -> value_default_initialize [label="Yes"]
             value_has_nontrivial_dflt_ctor -> done [label="No"]
+    }
+
+    subgraph list_initialization {
+        list_initialization_head [label="List-initialization\n[dcl.init.list]/3]", shape=box]
+            list_initialization_head -> list_has_designated_initializer
+
+        list_has_designated_initializer [label="Does the braced-init-list contain a designated-initializer-list?\n[dcl.init.list]/3.1", shape=diamond]
+            list_has_designated_initializer -> list_designated_initalizer_is_aggregate [label="Yes"]
+            list_has_designated_initializer -> list_is_aggregate_class [label="No"]
+
+        list_designated_initalizer_is_aggregate [label="Is the type an aggregate class?\n[dcl.init.list]/3.1", shape=diamond]
+            list_designated_initalizer_is_aggregate -> list_designated_initializer_are_identifiers_valid [label="Yes"]
+            list_designated_initalizer_is_aggregate -> list_designated_initalizer_nonaggregate_ill_formed [label="No"]
+
+        list_designated_initalizer_nonaggregate_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+
+        list_designated_initializer_are_identifiers_valid [label="Do the designators form a subsequence of the ordered idenitifiers in the direct non-static data members of the type?\n[dcl.init.list]/3.1", shape=diamond]
+            list_designated_initializer_are_identifiers_valid -> list_designated_initializer_aggregate_init [label="Yes"]
+            list_designated_initializer_are_identifiers_valid ->  list_designated_initalizer_initializers_ill_formed [label="No"]
+
+        list_designated_initalizer_initializers_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+
+        list_designated_initializer_aggregate_init [label="Aggregate initialization is performed.\n[dcl.init.list]/3.1", shape=diamond]
+        list_designated_initializer_aggregate_init -> aggregate_initialization_head
+
+        list_is_aggregate_class [label="Is the type an aggregate class?\n[dcl.init.list]/3.2", shape=diamond]
+            list_is_aggregate_class -> list_aggregate_is_list_singleton [label="Yes"]
+            list_is_aggregate_class -> list_is_type_char_array [label="No"]
+
+        list_aggregate_is_list_singleton [label="Does the initializer list have a single element?\n[dcl.init.list]/3.2", shape=diamond]
+            list_aggregate_is_list_singleton -> list_aggregate_singleton_is_type_valid [label="Yes"]
+            list_aggregate_is_list_singleton -> list_is_type_char_array [label="No"]
+
+        list_aggregate_singleton_is_type_valid [label="Does the sole element have type \"cv U\", where U is the initialized type or a type derived of it?\n[dcl.init.list]/3.2", shape=diamond]
+            list_aggregate_singleton_is_type_valid -> list_aggregate_singleton_type_init_type [label="Yes"]
+            list_aggregate_singleton_is_type_valid -> list_is_type_char_array [label="No"]
+
+        list_aggregate_singleton_type_init_type [label="What is the type of initialization?\n[dcl.init.list]/3.2", shape=diamond]
+            list_aggregate_singleton_type_init_type -> list_aggregate_singleton_type_copy [label="copy-list-initialization"]
+            list_aggregate_singleton_type_init_type -> list_aggregate_singleton_type_direct [label="direct-list-initialization"]
+
+        list_aggregate_singleton_type_copy [label="The object is copy-initialized from the sole element.\n[dcl.init.list]/3.2"]
+            list_aggregate_singleton_type_copy -> done
+
+        list_aggregate_singleton_type_direct [label="The object is direct-initialized from the sole element.\n[dcl.init.list]/3.2"]
+            list_aggregate_singleton_type_direct -> done
+
+        list_is_type_char_array [label="Is the type a character array?\n[dcl.init.list]/3.3", shape=diamond]
+            list_is_type_char_array -> list_char_array_is_singleton [label="Yes"]
+            list_is_type_char_array -> list_is_aggregate [label="No"]
+
+        list_char_array_is_singleton [label="Does the iniitializer list have a single element?\n[dcl.init.list/]3.3", shape=diamond]
+            list_char_array_is_singleton -> list_char_array_singleton_is_typed [label="Yes"]
+            list_char_array_is_singleton -> list_is_aggregate [label="No"]
+
+        list_char_array_singleton_is_typed [label="Is that element an appropriately-typed string-literal?\n[dcl.init.list]/3.3"]
+            list_char_array_singleton_is_typed -> list_char_array_string_literal_init [label=""]
+            list_char_array_singleton_is_typed -> list_is_aggregate [label="No"]
+
+        list_char_array_string_literal_init [label="Initialization as in [dcl.init.string]\n[dcl.init.list]/3.3"]
+            list_char_array_string_literal_init -> string_literal_initialization_head
+
+        list_is_aggregate [label="Is the type an aggregate?\n[dcl.init.list]/3.4", shape=diamond]
+            list_is_aggregate -> list_aggregate_aggregate_initialization [label="Yes"]
+            list_is_aggregate -> list_is_list_empty [label="No"]
+
+        list_aggregate_aggregate_initialization [label="Aggregate initialization is performed.\n[dcl.init.list]/3.4", shape=box]
+            list_aggregate_aggregate_initialization -> aggregate_initialization_head
+
+        list_is_list_empty [label="Is the initializer list empty?\n[dcl.init.list]/3.5", shape=diamond]
+            list_is_list_empty -> list_empty_is_class [label="Yes"]
+            list_is_list_empty -> list_dest_is_initializer_list [label="No"]
+
+        list_empty_is_class [label="Is the destination type a class type?\n[dcl.init.list]/3.5", shape=diamond]
+            list_empty_is_class -> list_empty_has_default_constructor [label="Yes"]
+            list_empty_is_class -> list_dest_is_initializer_list [label="No"]
+
+        list_empty_has_default_constructor [label="Does the class have a default constructor?\n[dcl.init.list]/3.5", shape=diamond]
+            list_empty_has_default_constructor -> list_empty_value_initialize [label="Yes"]
+            list_empty_has_default_constructor -> list_dest_is_initializer_list [label="No"]
+
+        list_empty_value_initialize [label="The object is value-initialized.\n[dcl.init.list]/3.5", shape=box]
+            list_empty_value_initialize -> done
+
+        list_dest_is_initializer_list [label="Is the type a specialization of std::initializer_list?\n[dcl.init.list]/3.6"]
+            list_dest_is_initializer_list -> list_initializer_list_init [label="Yes"]
+            list_dest_is_initializer_list -> list_is_class [label="No"]
+
+        list_initializer_list_init [label="Initialized as follows:\n[dcl.init.list]/5", shape=box]
+            list_initializer_list_init -> list_initializer_list_n_defn
+
+        list_initializer_list_n_defn [label="Let N be the number of elements in the initalizer list.", shape=box]
+            list_initializer_list_n_defn -> list_initializer_list_materialize_array
+
+        list_initializer_list_materialize_array [label="Where type is std::initializer_list<E>, a prvalue of type \"array of N const E\" is materialized.", shape=box]
+            list_initializer_list_materialize_array -> list_initializer_list_init_array
+
+        list_initializer_list_init_array [label="Each element of the array is copy-initialized with the corresponding element of the initializer list.", shape=box]
+            list_initializer_list_init_array -> list_initializer_list_is_narrowing
+
+        list_initializer_list_is_narrowing [label="Is a narrowing conversion required to initialize any of the elements?", shape=diamond]
+            list_initializer_list_is_narrowing -> list_initializer_list_narrowing_ill_formed [label="Yes"]
+            list_initializer_list_is_narrowing -> list_initializer_list_init_object [label="No"]
+
+        list_initializer_list_narrowing_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+
+        list_initializer_list_init_object [label="The initializer_list is constructed to refer to the materialized array.", shape=box]
+            list_initializer_list_init_object -> done
+
+        list_is_class [label="Is the type a class type?\n[dcl.init.list]/3.7", shape=diamond]
+            list_is_class -> list_class_ctors [label="Yes"]
+            list_is_class -> list_is_enum [label="No"]
+
+        list_class_ctors [label="Constructors are considered, and the best match is selected through overload resolution.\n[dcl.init.list]/3.7", shape=box]
+            list_class_ctors -> list_class_is_narrowing
+
+        list_class_is_narrowing [label="Is a narrowing conversion required to convert any of the arguments?\n[dcl.init.list]/3.7", shape=diamond]
+            list_class_is_narrowing -> list_class_narrowing_ill_formed [label="Yes"]
+            list_class_is_narrowing -> done [label="No"]
+
+        list_class_narrowing_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+
+        list_is_enum [label="Is the type an enumeration?\n[dcl.init.list]/3.8", shape=diamond]
+            list_is_enum -> list_enum_is_fixed [label="Yes"]
+            list_is_enum -> list_final_is_singleton [label="No"]
+
+        list_enum_is_fixed [label="Does the enumeration have fixed underlying type?\n[dcl.init.list]/3.8", shape=diamond]
+            list_enum_is_fixed -> list_enum_underlying_defn [label="Yes"]
+            list_enum_is_fixed -> list_final_is_singleton [label="No"]
+
+        list_enum_underlying_defn [label="Let U be the underlying type.\n[dcl.init.list]/3.8", shape=box]
+            list_enum_underlying_defn -> list_enum_is_singleton
+
+        list_enum_is_singleton [label="Does the initializer list have a single element?\n[dcl.init.list]/3.8", shape=diamond]
+            list_enum_is_singleton -> list_enum_elem_defn [label="Yes"]
+            list_enum_is_singleton -> list_final_is_singleton [label="No"]
+
+        list_enum_elem_defn [label="Let v be that element.\n[dcl.init.list]/3.8", shape=box]
+            list_enum_elem_defn -> list_enum_is_convertible
+
+        list_enum_is_convertible [label="Can v be implicitly converted to U?\n[dcl.init.list]/3.8", shape=diamond]
+            list_enum_is_convertible -> list_enum_is_direct [label="Yes"]
+            list_enum_is_convertible -> list_final_is_singleton [label="No"]
+
+        list_enum_is_direct [label="Is the initialization direct-list-initialization?\n[dcl.init.list]/3.8", shape=diamond]
+            list_enum_is_direct -> list_enum_is_narrowing [label="Yes"]
+            list_enum_is_direct -> list_final_is_singleton [label="No"]
+
+        list_enum_is_narrowing [label="Is a narrowing conversion required to convert v to U?\n[dcl.init.list]/3.8"]
+            list_enum_is_narrowing -> list_enum_narrowing_ill_formed [label="Yes"]
+            list_enum_is_narrowing -> list_enum_initialization [label="No"]
+
+        list_enum_initialization [label="The object is initialized with the value T(u).", shape=box]
+            list_enum_initialization -> done
+
+        list_enum_narrowing_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+
+        // Final just because I couldn't come up with a better name for it. "Final" as in "last".
+
+        list_final_is_singleton [label="Does the initializer list have a single element?\n[dcl.init.list]/3.9", style=diamond]
+            list_final_is_singleton -> list_final_singleton_type_defn [label="Yes"]
+            list_final_is_singleton -> list_ref_prvalue_is_ref [label="No"]
+
+        list_final_singleton_type_defn [label="Let E be the type of that element.\n[dcl.init.list]/3.9", style=box]
+            list_final_singleton_type_defn -> list_final_singleton_is_dest_ref
+
+        list_final_singleton_is_dest_ref [label="Is the destination type a reference?\n[dcl.init.list]/3.9", style=diamond]
+            list_final_singleton_is_dest_ref -> list_final_singleton_is_dest_ref_related [label="Yes"]
+            list_final_singleton_is_dest_ref -> list_final_singleton_type [label="No"]
+
+        list_final_singleton_is_dest_ref_related [label="Is the destination type's referenced type reference-related to E?\n[dcl.init.list]/3.9", shape=diamond]
+            list_final_singleton_is_dest_ref_related -> list_final_singleton_type [label="Yes"]
+            list_final_singleton_is_dest_ref_related -> list_ref_prvalue_is_ref [label="No"]
+
+        list_final_singleton_type [label="What is the type of initialization?\n[dcl.init.list]/3.9"]
+            list_final_singleton_type -> list_final_singleton_direct [label="direct-list-initialization"]
+            list_final_singleton_type -> list_final_singleton_copy [label="copy-list-initialization"]
+
+        list_final_singleton_direct [label="The destination is initialized by direct-initialization from the element.\n[dcl.init.list]/3.9", shape=box]
+            list_final_singleton_direct -> list_final_singleton_is_narrowing
+
+        list_final_singleton_copy [label="The destination is initialized by copy-initialization from the element.\n[dcl.init.list]/3.9", shape=box]
+            list_final_singleton_copy -> list_final_singleton_is_narrowing
+
+        list_final_singleton_is_narrowing [label="Is a narrowing conversion required to convert the element to the destination type?\n[dcl.init.list]/3.9", shape=diamond]
+            list_final_singleton_is_narrowing -> done [label="No"]
+            list_final_singleton_is_narrowing -> list_final_singleton_narrowing_ill_formed [label="Yes"]
+
+        list_final_singleton_narrowing_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+
+        list_ref_prvalue_is_ref [label="Is the destination type a reference type?\n[dcl.init.list]/3.10", shape=diamond]
+            list_ref_prvalue_is_ref -> list_ref_prvalue_prvalue_generated [label="Yes"]
+            list_ref_prvalue_is_ref -> list_final_is_empty [label="No"]
+
+        list_ref_prvalue_prvalue_generated [label="A prvalue is generated.\n[dcl.init.list]/3.10", shape=box]
+            list_ref_prvalue_prvalue_generated -> list_ref_prvalue_type_is_unknown_bound
+
+        list_ref_prvalue_type_is_unknown_bound [label="Is the destination type an array of unknown bound?\n[dcl.init.list]/3.10", shape=diamond]
+            list_ref_prvalue_type_is_unknown_bound -> list_ref_prvalue_type_unknown_bound [label="Yes"]
+            list_ref_prvalue_type_is_unknown_bound -> list_ref_prvalue_type_normal [label="No"]
+
+        list_ref_prvalue_type_normal [label="The type of the prvalue is the type referenced by the destination type.\n[dcl.init.list]/3.10", shape=box]
+            list_ref_prvalue_type_normal -> list_ref_prvalue_init_prvalue
+
+        list_ref_prvalue_type_unknown_bound [label="The type of the prvalue is the type of x in U x[] H, where H is the initializer list.\n[dcl.init.list]/3.10", shape=box]
+            list_ref_prvalue_type_unknown_bound -> list_ref_prvalue_init_prvalue
+
+        list_ref_prvalue_init_prvalue [label="The prvalue initializes a result object by copy-list-initialization.\n[dcl.init.list]/3.10", shape=box]
+            list_ref_prvalue_init_prvalue -> list_ref_prvalue_init_ref
+
+        list_ref_prvalue_init_ref [label="The reference is direct-initialized by the prvalue.\n[dcl.init.list]/3.10", shape=box]
+            list_ref_prvalue_init_ref -> done 
+
+        // Final, again, as in "last".
+        list_final_is_empty [label="Is the initializer list empty?\n[dcl.init.list]/3.11", shape=diamond]
+            list_final_is_empty -> list_final_empty_value_init [label="Yes"]
+            list_final_is_empty -> list_nothing_else_ill_formed [label="No"]
+
+        list_final_empty_value_init [label="The object is value-initialized.\n[dcl.init.list]/3.12", shape=box]
+            list_final_empty_value_init -> done
+
+        list_nothing_else_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+
     }
 }

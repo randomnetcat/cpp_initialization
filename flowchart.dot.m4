@@ -539,4 +539,120 @@ digraph initialization {
         ILL_FORMED_NODE(list_nothing_else_ill_formed)
 
     }
+
+    subgraph aggregate_initialization {
+        INSTRUCTION_NODE(aggregate_initialization_head, `Aggregate initialization', `[dcl.init.aggr]')
+            aggregate_initialization_head -> aggregate_determine_elements
+
+        INSTRUCTION_NODE(aggregate_determine_elements, `Determine the elements of the aggregate.', `[dcl.init.aggr]/2')
+            aggregate_determine_elements -> aggregate_elements_type
+
+        QUESTION_NODE(aggregate_elements_type, `What is the type of the aggregate?', `[dcl.init.aggr]/2')
+            aggregate_elements_type -> aggregate_elements_array [label="an array type"]
+            aggregate_elements_type -> aggregate_elements_class [label="a class type"]
+
+        INSTRUCTION_NODE(aggregate_elements_array, `The elements are the array elements in increasing subscript order.', `[dcl.init.aggr]/2.1')
+            aggregate_elements_array -> aggregate_determine_explicit_init_elems
+
+        INSTRUCTION_NODE(aggregate_elements_class, `The elements are the direct base classes in declaration order, followed by the direct non-static data members that are not members of an anonymous union, in declaration order.', `[dcl.init.aggr]/2.2')
+            aggregate_elements_class -> aggregate_determine_explicit_init_elems
+
+        INSTRUCTION_NODE(aggregate_determine_explicit_init_elems, `Determine the explicitly initialized elements', `[dcl.init.aggr]/3')
+            aggregate_determine_explicit_init_elems -> aggregate_explicit_is_designated
+
+        YN_QUESTION_NODE(aggregate_explicit_is_designated, `Is the initializer list a designated-initializer-list?', `[dcl.init.aggr]/3.1', aggregate_explicit_desginated_is_class, aggregate_explicit_is_init_list)
+
+        QUESTION_NODE(aggregate_explicit_desginated_is_class, `Is the aggregate of class type?', `[dcl.init.aggr]/3.1')
+            aggregate_explicit_desginated_is_class -> aggregate_explicit_designated_are_designators_valid [label="Yes"]
+            LINK_TO_ILL_FORMED(aggregate_explicit_desginated_is_class, [label="No"])
+
+        QUESTION_NODE(aggregate_explicit_designated_are_designators_valid, `Does each designator`''s identifier name a direct non-static data member of that class?, `[dcl.init.aggr]/3.1')
+            aggregate_explicit_designated_are_designators_valid -> aggregate_explicit_desginated [label="Yes"]
+            LINK_TO_ILL_FORMED(aggregate_explicit_designated_are_designators_valid, [label="No"])
+
+        INSTRUCTION_NODE(aggregate_explicit_desginated, `The explicitly initialized elements are those named by the designator'`''`s initializers '`(or those that contain the named elements)', `[dcl.init.aggr]/3.1')
+            aggregate_explicit_desginated -> aggregate_initialize_explicit
+
+        YN_QUESTION_NODE(aggregate_explicit_is_init_list, `Is the initializer list an initializer-list' `(i.e. does it have at least one element)?', `[dcl.init.aggr]/3.2', aggregate_explicit_init_list, aggregate_explicit_empty)
+
+        INSTRUCTION_NODE(aggregate_explicit_init_list, `The explicitly initialized elements are the first elements of the aggregate, matching the number in the initializer list.', `[dcl.init.aggr]/3.2')
+            aggregate_explicit_init_list -> aggregate_explicit_list_is_union
+
+        YN_QUESTION_NODE(aggregate_explicit_list_is_union, `Is the aggregate a union?', `[dcl.init.aggr]/19', aggregate_explicit_list_union_is_excess_explicit_init, aggregate_initialize_explicit)
+
+        QUESTION_NODE(aggregate_explicit_list_union_is_excess_explicit_init, `Is there more than one explicitly initialized element?', `[dcl.init.list]/19')
+            LINK_TO_ILL_FORMED(aggregate_explicit_list_union_is_excess_explicit_init, [label="Yes"])
+            aggregate_explicit_list_union_is_excess_explicit_init -> aggregate_initialize_explicit [label="No"]
+
+        INSTRUCTION_NODE(aggregate_explicit_empty, `The initializer list is \"{}\", and there are no explicitly initialized elements.', `[dcl.init.aggr]/3.3')
+            aggregate_explicit_empty -> aggregate_initialize_explicit
+
+        INSTRUCTION_NODE(aggregate_initialize_explicit, `The explicitly initialized elements are initialized as follows:', `[dcl.init.aggr]/4')
+            aggregate_initialize_explicit -> aggregate_initialize_explicit_foreach
+
+        INSTRUCTION_NODE(aggregate_initialize_explicit_foreach, `For each explicitly initialized element...', `[dcl.init.aggr]/4')
+            aggregate_initialize_explicit_foreach -> aggregate_initialize_explicit_is_anon_union
+
+        YN_QUESTION_NODE(aggregate_initialize_explicit_is_anon_union, `Is the element an anonymous union object?', `[dcl.init.aggr]/4.1', aggregate_initialize_explicit_union_is_designated, aggregate_initialize_explicit_copy_kind)
+
+        YN_QUESTION_NODE(aggregate_initialize_explicit_union_is_designated, `Is the initializer-list a designated-iniitializer-list?', `[dcl.init.aggr]/4.1', aggregate_initialize_explicit_union_is_duplicate_designator, aggregate_initialize_explicit_copy_kind)
+
+        QUESTION_NODE(aggregate_initialize_explicit_union_is_duplicate_designator, `Is there more than one designator that names a member of that anonymous union?', `[dcl.init.aggr]/4.1')
+            LINK_TO_ILL_FORMED(aggregate_initialize_explicit_union_is_duplicate_designator, [label="Yes"])
+            aggregate_initialize_explicit_union_is_duplicate_designator -> aggregate_initialize_explicit_union_init [label="No"]
+
+        INSTRUCTION_NODE(aggregate_initialize_explicit_union_init, `The anonymous union object is initialized by { D }, where D is the designated-initializer-clause naming a member of the anonymous union object.')
+            aggregate_initialize_explicit_union_init -> aggregate_initialize_explicit_repeat_next
+
+        QUESTION_NODE(aggregate_initialize_explicit_copy_kind, `What is the kind of brace initializer?', `[dcl.init.aggr]/4.2')
+            aggregate_initialize_explicit_copy_kind -> aggregate_initialize_explicit_copy_init_list [label="initializer-list"]
+            aggregate_initialize_explicit_copy_kind -> aggregate_initialize_explicit_copy_designated [label="designated-initializer-list"]
+
+        INSTRUCTION_NODE(aggregate_initialize_explicit_copy_init_list, `The element is copy-initialized from the corresponding initializer-clause.', `[dcl.init.aggr]/4.2')
+            aggregate_initialize_explicit_copy_init_list -> aggregate_initialize_explicit_is_narrowing_checked
+
+        INSTRUCTION_NODE(aggregate_initialize_explicit_copy_designated, `The element is initialized with the brace-or-equal initializer of the corresponding designated-initializer-clause.', `[dcl.init.aggr]/4.2')
+            aggregate_initialize_explicit_copy_designated -> aggregate_initialize_explicit_is_narrowing_checked
+
+        YN_QUESTION_NODE(aggregate_initialize_explicit_is_narrowing_checked, `Is the initializer of the form \"assignment-expression\" or \"= assignment-expression\"?', `[dcl.init.aggr]/4.2', aggregate_initialize_explicit_is_narrowing, aggregate_initialize_explicit_repeat_next)
+
+        QUESTION_NODE(aggregate_initialize_explicit_is_narrowing, `Is a narrowing conversion required to convert the expression?', `[dcl.init.aggr/4.2')
+            LINK_TO_ILL_FORMED(aggregate_initialize_explicit_is_narrowing, [label="Yes"])
+            aggregate_initialize_explicit_is_narrowing -> aggregate_initialize_explicit_repeat_next [label="No"]
+
+        INSTRUCTION_NODE(aggregate_initialize_explicit_repeat_next, `Repeat with the next explicitly initialized element.')
+            aggregate_initialize_explicit_repeat_next -> aggregate_initialize_nonexplicit_is_union [label="Once done with all explicitly initialized elements"]
+
+        YN_QUESTION_NODE(aggregate_initialize_nonexplicit_is_union, `Is the aggregate a union?', `[dcl.init.aggr]/5', aggregate_initialize_nonexplicit_nonunion, aggregate_initialize_nonexplicit_union_is_list_empty)
+
+        INSTRUCTION_NODE(aggregate_initialize_nonexplicit_nonunion, `For each non-explicitly-initialized element:', `[dcl.init.aggr]/5')
+            aggregate_initialize_nonexplicit_nonunion -> aggregate_initialize_nonexplicit_nonunion_has_dflt_mem_init
+
+        YN_QUESTION_NODE(aggregate_initialize_nonexplicit_nonunion_has_dflt_mem_init, `Does the element have a default member initializer?', `[dcl.init.aggr]/5.1', aggregate_initialize_nonexplicit_nonunion_dflt_mem_init, aggregate_initialize_nonexplicit_nonunion_is_reference)
+
+        INSTRUCTION_NODE(aggregate_initialize_nonexplicit_nonunion_dflt_mem_init, `The element is initialized from that initializer.', `[dcl.init.aggr]/5.1')
+            aggregate_initialize_nonexplicit_nonunion_dflt_mem_init -> aggregate_initialize_nonexplicit_nonunion_repeat_next
+
+        QUESTION_NODE(aggregate_initialize_nonexplicit_nonunion_is_reference, `Is the element a reference?', `[dcl.init.aggr]/5.2')
+            aggregate_initialize_nonexplicit_nonunion_is_reference -> aggregate_initialize_nonexplicit_nonunion_copy_init [label="No"]
+            LINK_TO_ILL_FORMED(aggregate_initialize_nonexplicit_nonunion_is_reference)
+
+        INSTRUCTION_NODE(aggregate_initialize_nonexplicit_nonunion_copy_init, `The element is copy-initialized from an empty initializer list.', `[dcl.init.aggr]/5.2')
+            aggregate_initialize_nonexplicit_nonunion_copy_init -> aggregate_initialize_nonexplicit_nonunion_repeat_next
+
+        INSTRUCTION_NODE(aggregate_initialize_nonexplicit_nonunion_repeat_next, `Repeat with the next non-explicitly-initialized element.')
+            LINK_TO_DONE(aggregate_initialize_nonexplicit_nonunion_repeat_next, [label="Once done with all explicitly initialized elements"])
+
+        QUESTION_NODE(aggregate_initialize_nonexplicit_union_is_list_empty, `Is the initializer list empty?', `[dcl.init.aggr]/5')
+            aggregate_initialize_nonexplicit_union_is_list_empty -> aggregate_initialize_nonexplicit_union_empty_has_dflt [label="Yes"]
+            LINK_TO_DONE(aggregate_initialize_nonexplicit_union_is_list_empty, [label="No"])
+
+        YN_QUESTION_NODE(aggregate_initialize_nonexplicit_union_empty_has_dflt, `Does any variant member of the union have a default member initializer?', `[dcl.init.aggr]/5.4', aggregate_initialize_nonexplicit_union_dflt_mem, aggregate_initialize_nonexplicit_union_first_mem)
+
+        INSTRUCTION_NODE(aggregate_initialize_nonexplicit_union_dflt_mem, `That member is initialized from its default member initializer.', `[dcl.init.aggr]/5.4')
+            LINK_TO_DONE(aggregate_initialize_nonexplicit_union_dflt_mem)
+
+        INSTRUCTION_NODE(aggregate_initialize_nonexplicit_union_first_mem, `The first member of the union' `(if any)' `is copy-initialized from an empty initializer list.', `[dcl.init.aggr]/5.5')
+            LINK_TO_DONE(aggregate_initialize_nonexplicit_union_first_mem)
+    }
 }

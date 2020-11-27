@@ -20,6 +20,10 @@ $1 -> $4 [label="No"]
 define(`ILL_FORMED_NODE', `$1 [label="The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 ')
 
+define(`LINK_TO_ILL_FORMED', `$1 -> $1'`__generated_ill_formed $2'`
+ILL_FORMED_NODE(`$1'`__generated_ill_formed')
+')
+
 digraph initialization {
     start [label="So you want to initialize something?\n[dcl.init]/16", style=filled, fillcolor=green, shape=box, color=green, fontcolor=white]
         start -> is_braced
@@ -336,10 +340,8 @@ digraph initialization {
             LINK_TO_DONE(reference_temp_implicit_conv_materialize_is_dest_rval, [label="No"])
 
         QUESTION_NODE(reference_temp_implicit_conv_materialize_is_source_lval, `Is the initializer an lvalue?', `[dcl.init.ref]/5.4.4')
-            reference_temp_implicit_conv_materialize_is_source_lval -> reference_temp_implicit_conv_materialize_source_lval_ill_formed [label="Yes"]
+            LINK_TO_ILL_FORMED(reference_temp_implicit_conv_materialize_is_source_lval, [label="Yes"])
             LINK_TO_DONE(reference_temp_implicit_conv_materialize_is_source_lval, [label="No"])
-
-        ILL_FORMED_NODE(reference_temp_implicit_conv_materialize_source_lval_ill_formed)
     }
 
     subgraph value_initialization {
@@ -463,10 +465,8 @@ digraph initialization {
             list_class_ctors -> list_class_is_narrowing
 
         QUESTION_NODE(list_class_is_narrowing, `Is a narrowing conversion required to convert any of the arguments?', `[dcl.init.list]/3.7')
-            list_class_is_narrowing -> list_class_narrowing_ill_formed [label="Yes"]
+            LINK_TO_ILL_FORMED(list_class_is_narrowing, [label="Yes"])
             LINK_TO_DONE(list_class_is_narrowing, [label="No"])
-
-        ILL_FORMED_NODE(list_class_narrowing_ill_formed)
 
         YN_QUESTION_NODE(list_is_enum, `Is the type an enumeration?', `[dcl.init.list]/3.8', list_enum_is_fixed, list_final_is_singleton)
 
@@ -484,9 +484,7 @@ digraph initialization {
 
         YN_QUESTION_NODE(list_enum_is_direct, `Is the initialization direct-list-initialization?', `[dcl.init.list]/3.8', list_enum_is_narrowing, list_final_is_singleton)
 
-        list_enum_is_narrowing [label="Is a narrowing conversion required to convert v to U?\n[dcl.init.list]/3.8"]
-            list_enum_is_narrowing -> list_enum_narrowing_ill_formed [label="Yes"]
-            list_enum_is_narrowing -> list_enum_initialization [label="No"]
+        YN_QUESTION_NODE(list_enum_is_narrowing, `Is a narrowing conversion required to convert v to U?', `[dcl.init.list]/3.8', list_enum_narrowing_ill_formed, list_enum_initialization)
 
         INSTRUCTION_NODE(list_enum_initialization, `The object is initialized with the value T(u).')
             LINK_TO_DONE(list_enum_initialization)
@@ -515,10 +513,8 @@ digraph initialization {
             list_final_singleton_copy -> list_final_singleton_is_narrowing
 
         QUESTION_NODE(list_final_singleton_is_narrowing, `Is a narrowing conversion required to convert the element to the destination type?', `[dcl.init.list]/3.9')
+            LINK_TO_ILL_FORMED(list_final_singleton_is_narrowing, [label="Yes"])
             LINK_TO_DONE(list_final_singleton_is_narrowing, [label="No"])
-            list_final_singleton_is_narrowing -> list_final_singleton_narrowing_ill_formed [label="Yes"]
-
-        ILL_FORMED_NODE(list_final_singleton_narrowing_ill_formed)
 
         YN_QUESTION_NODE(list_ref_prvalue_is_ref, `Is the destination type a reference type?', `[dcl.init.list]/3.10', list_ref_prvalue_prvalue_generated, list_final_is_empty)
 

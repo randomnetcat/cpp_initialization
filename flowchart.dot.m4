@@ -12,6 +12,12 @@ $1 -> $4 [label="Yes"]
 $1 -> $5 [label="No"]
 ')
 
+define(`YN_QUESTION_NODE_NO_CITE', `QUESTION_NODE($1, $2)
+$1 -> $3 [label="Yes"]
+$1 -> $4 [label="No"]
+')
+
+
 digraph initialization {
     start [label="So you want to initialize something?\n[dcl.init]/16", style=filled, fillcolor=green, shape=box, color=green, fontcolor=white]
         start -> is_braced
@@ -36,9 +42,7 @@ digraph initialization {
         INSTRUCTION_NODE(array_k_definition, `Let k be the number of elements in the initializer's expression list.')
             array_k_definition -> array_is_unsized
 
-        QUESTION_NODE(array_is_unsized, `Is destination type an array of unknown bound?')
-            array_is_unsized -> array_unsized_n_defn [label = "Yes"]
-            array_is_unsized -> array_sized_n_defn [label = "No"]
+        YN_QUESTION_NODE_NO_CITE(array_is_unsized, `Is destination type an array of unknown bound?', array_unsized_n_defn, array_sized_n_defn)
         
         INSTRUCTION_NODE(array_unsized_n_defn, `Let n be k.')
             array_unsized_n_defn -> array_initialize_first_k
@@ -46,9 +50,7 @@ digraph initialization {
         INSTRUCTION_NODE(array_sized_n_defn, `Let n be the array size of the destination type.')
             array_sized_n_defn -> array_k_gt_n
 
-        QUESTION_NODE(array_k_gt_n, `Is k > n?')
-            array_k_gt_n -> array_k_gt_n_ill_formed [label = "Yes"]
-            array_k_gt_n -> array_initialize_first_k [label = "No"]    
+        YN_QUESTION_NODE_NO_CITE(array_k_gt_n, `Is k > n?', array_k_gt_n_ill_formed, array_initialize_first_k)
 
         array_k_gt_n_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
@@ -120,9 +122,7 @@ digraph initialization {
             INSTRUCTION_NODE(class_aggregate_paren_k_defn, `Let k b ethe number of elements in the initializer's expression list.')
                 class_aggregate_paren_k_defn -> class_aggregate_paren_is_k_gt_n
 
-            QUESTION_NODE(class_aggregate_paren_is_k_gt_n, `Is k > n?')
-                class_aggregate_paren_is_k_gt_n -> class_aggregate_paren_ill_formed [label="Yes"]
-                class_aggregate_paren_is_k_gt_n -> class_aggregate_paren_initialize_first_k [label="No"]
+            YN_QUESTION_NODE_NO_CITE(class_aggregate_paren_is_k_gt_n, `Is k > n?', class_aggregate_paren_ill_formed, class_aggregate_paren_initialize_first_k)
 
             INSTRUCTION_NODE(class_aggregate_paren_initialize_first_k, `Copy-initialize the first k elements from the expression list.')
                 class_aggregate_paren_initialize_first_k -> class_aggregate_paren_initialize_rest
@@ -140,9 +140,7 @@ digraph initialization {
             INSTRUCTION_NODE(class_user_defined_conv_overload_resolution, `Use overload resolution to select the best user-defined conversion that can convert from the source type to the destination type or (when a conversion function is used) to a derived class thereof.')
                 class_user_defined_conv_overload_resolution -> class_user_defined_conv_is_possible
             
-            QUESTION_NODE(class_user_defined_conv_is_possible, `Is the conversion ambiguous or impossible?')
-                class_user_defined_conv_is_possible -> class_user_defined_conv_ill_formed [label="Yes"]
-                class_user_defined_conv_is_possible -> class_user_defined_conv_do_conversion [label="No"]
+            YN_QUESTION_NODE_NO_CITE(class_user_defined_conv_is_possible, `Is the conversion ambiguous or impossible?', class_user_defined_conv_ill_formed, class_user_defined_conv_do_conversion)
 
             INSTRUCTION_NODE(class_user_defined_conv_do_conversion, `Call the selected function with the initializer-expression as its argument.')
                 class_user_defined_conv_do_conversion -> class_user_defined_conv_initialize
@@ -182,9 +180,7 @@ digraph initialization {
         INSTRUCTION_NODE(string_literal_initialize_first, `Initialize the first elements of the array with successive values from the string literal.')
             string_literal_initialize_first -> string_literal_has_too_many
 
-        QUESTION_NODE(string_literal_has_too_many, `Are there more initializers than array elements?')
-            string_literal_has_too_many -> string_literal_ill_formed_too_many [label="Yes"]
-            string_literal_has_too_many -> string_literal_initialize_rest [label="No"]
+        YN_QUESTION_NODE_NO_CITE(string_literal_has_too_many, `Are there more initializers than array elements?', string_literal_ill_formed_too_many, string_literal_initialize_rest)
 
         string_literal_ill_formed_too_many [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
@@ -199,9 +195,7 @@ digraph initialization {
         INSTRUCTION_NODE(class_source_consider_conversion_functions, `Use overload resolution to select the best applicable conversion function.')
             class_source_consider_conversion_functions -> class_source_conversion_is_impossible
 
-        QUESTION_NODE(class_source_conversion_is_impossible, `Is the conversion impossible or ambiguous?')
-            class_source_conversion_is_impossible -> class_source_conversion_ill_formed [label="Yes"]
-            class_source_conversion_is_impossible -> class_source_initialize [label="No"]
+        YN_QUESTION_NODE_NO_CITE(class_source_conversion_is_impossible, `Is the conversion impossible or ambiguous?', class_source_conversion_ill_formed, class_source_initialize)
 
         class_source_conversion_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
@@ -216,9 +210,7 @@ digraph initialization {
         INSTRUCTION_NODE(standard_conv_seq_do_init, `Initialize the object using the value of the initializer expression, using a standard conversion sequence if necessary, not considering any user-defined conversions.')
             standard_conv_seq_do_init -> standard_conv_seq_is_possible
 
-        QUESTION_NODE(standard_conv_seq_is_possible, `Is the conversion possible?')
-            standard_conv_seq_is_possible -> standard_conv_seq_ill_formed [label="No"]
-            standard_conv_seq_is_possible -> standard_conv_seq_is_bitfield [label="Yes"]
+        YN_QUESTION_NODE_NO_CITE(standard_conv_seq_is_possible, `Is the conversion possible?', standard_conv_seq_is_bitfield, standard_conv_seq_ill_formed)
 
         standard_conv_seq_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 
@@ -456,9 +448,7 @@ digraph initialization {
         INSTRUCTION_NODE(list_initializer_list_init_array, `Each element of the array is copy-initialized with the corresponding element of the initializer list.')
             list_initializer_list_init_array -> list_initializer_list_is_narrowing
 
-        QUESTION_NODE(list_initializer_list_is_narrowing, `Is a narrowing conversion required to initialize any of the elements?')
-            list_initializer_list_is_narrowing -> list_initializer_list_narrowing_ill_formed [label="Yes"]
-            list_initializer_list_is_narrowing -> list_initializer_list_init_object [label="No"]
+        YN_QUESTION_NODE_NO_CITE(list_initializer_list_is_narrowing, `Is a narrowing conversion required to initialize any of the elements?', list_initializer_list_narrowing_ill_formed, list_initializer_list_init_object)
 
         list_initializer_list_narrowing_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
 

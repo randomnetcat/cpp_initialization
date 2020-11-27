@@ -4,8 +4,8 @@ define(`LINK_TO_DONE', `$1 -> $1'`__generated_done '`$2'`
 DEFINE_DONE(`$1'`__generated_done')
 ')
 
-define(`QUESTION_NODE', `$1 [label="$2'`ifelse($3,`', `', `\n'$3)'`", shape=diamond]')
-define(`INSTRUCTION_NODE', `$1 [label="$2'`ifelse($3,`', `', `\n'$3)'`", shape=box]')
+define(`QUESTION_NODE', `$1 [label="$2'ifelse($3,`', `', `\n'$3)`", shape=diamond]')
+define(`INSTRUCTION_NODE', `$1 [label="$2'ifelse($3,`', `', `\n'$3)`", shape=box]')
 
 define(`YN_QUESTION_NODE', `QUESTION_NODE($1, $2, $3)
 $1 -> $4 [label="Yes"]

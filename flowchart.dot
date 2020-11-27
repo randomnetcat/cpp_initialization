@@ -609,14 +609,14 @@ digraph initialization {
 
         // Final just because I couldn't come up with a better name for it. "Final" as in "last".
 
-        list_final_is_singleton [label="Does the initializer list have a single element?\n[dcl.init.list]/3.9", style=diamond]
+        list_final_is_singleton [label="Does the initializer list have a single element?\n[dcl.init.list]/3.9", shape=diamond]
             list_final_is_singleton -> list_final_singleton_type_defn [label="Yes"]
             list_final_is_singleton -> list_ref_prvalue_is_ref [label="No"]
 
-        list_final_singleton_type_defn [label="Let E be the type of that element.\n[dcl.init.list]/3.9", style=box]
+        list_final_singleton_type_defn [label="Let E be the type of that element.\n[dcl.init.list]/3.9", shape=box]
             list_final_singleton_type_defn -> list_final_singleton_is_dest_ref
 
-        list_final_singleton_is_dest_ref [label="Is the destination type a reference?\n[dcl.init.list]/3.9", style=diamond]
+        list_final_singleton_is_dest_ref [label="Is the destination type a reference?\n[dcl.init.list]/3.9", shape=diamond]
             list_final_singleton_is_dest_ref -> list_final_singleton_is_dest_ref_related [label="Yes"]
             list_final_singleton_is_dest_ref -> list_final_singleton_type [label="No"]
 

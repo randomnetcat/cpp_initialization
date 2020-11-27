@@ -17,6 +17,8 @@ $1 -> $3 [label="Yes"]
 $1 -> $4 [label="No"]
 ')
 
+define(`ILL_FORMED_NODE', `$1 [label="The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+')
 
 digraph initialization {
     start [label="So you want to initialize something?\n[dcl.init]/16", style=filled, fillcolor=green, shape=box, color=green, fontcolor=white]
@@ -52,7 +54,7 @@ digraph initialization {
 
         YN_QUESTION_NODE_NO_CITE(array_k_gt_n, `Is k > n?', array_k_gt_n_ill_formed, array_initialize_first_k)
 
-        array_k_gt_n_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+        ILL_FORMED_NODE(array_k_gt_n_ill_formed)
 
         INSTRUCTION_NODE(array_initialize_first_k, `Copy-initialize the first k array elements from the expressions in the initailizer.')
             array_initialize_first_k -> array_initialize_rest
@@ -110,7 +112,7 @@ digraph initialization {
 
         YN_QUESTION_NODE(class_aggregate_is_initializer_expr_list, `Is the initializer a parenthesized expression-list?', `[dcl.init]/16.6.2.2', class_aggregate_paren_init_head, class_ill_formed)
 
-        class_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+        ILL_FORMED_NODE(class_ill_formed)
 
         subgraph class_aggregate_paren_init {
             INSTRUCTION_NODE(class_aggregate_paren_init_head, `Initialized as follows:', `[dcl.init]/16.6.2.2')
@@ -130,7 +132,7 @@ digraph initialization {
             INSTRUCTION_NODE(class_aggregate_paren_initialize_rest, `Use default member initializer or value-initialize the remaining elements.')
                 LINK_TO_DONE(class_aggregate_paren_initialize_rest)
 
-            class_aggregate_paren_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+            ILL_FORMED_NODE(class_aggregate_paren_ill_formed)
         }
 
         subgraph class_user_defined_conv {
@@ -148,7 +150,7 @@ digraph initialization {
             INSTRUCTION_NODE(class_user_defined_conv_initialize, `Direct-initialize the destination object with the result of the conversion.')
                 LINK_TO_DONE(class_user_defined_conv_initialize)
 
-            class_user_defined_conv_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+            ILL_FORMED_NODE(class_user_defined_conv_ill_formed)
         }
     }
 
@@ -182,7 +184,7 @@ digraph initialization {
 
         YN_QUESTION_NODE_NO_CITE(string_literal_has_too_many, `Are there more initializers than array elements?', string_literal_ill_formed_too_many, string_literal_initialize_rest)
 
-        string_literal_ill_formed_too_many [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+        ILL_FORMED_NODE(string_literal_ill_formed_too_many)
 
         string_literal_initialize_rest [label="Zero-initialize the remaining elements of the array (if any)."]
             LINK_TO_DONE(string_literal_initialize_rest)
@@ -197,7 +199,7 @@ digraph initialization {
 
         YN_QUESTION_NODE_NO_CITE(class_source_conversion_is_impossible, `Is the conversion impossible or ambiguous?', class_source_conversion_ill_formed, class_source_initialize)
 
-        class_source_conversion_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+        ILL_FORMED_NODE(class_source_conversion_ill_formed)
 
         class_source_initialize [label="Use the result of the conversion to convert the initializer to the object being initialized."]
             LINK_TO_DONE(class_source_initialize)
@@ -212,7 +214,7 @@ digraph initialization {
 
         YN_QUESTION_NODE_NO_CITE(standard_conv_seq_is_possible, `Is the conversion possible?', standard_conv_seq_is_bitfield, standard_conv_seq_ill_formed)
 
-        standard_conv_seq_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+        ILL_FORMED_NODE(standard_conv_seq_ill_formed)
 
         QUESTION_NODE(standard_conv_seq_is_bitfield, `Is the object to be initialized a bit-field?')
             standard_conv_seq_is_bitfield -> standard_conv_seq_is_bitfield_in_range [label="Yes"]
@@ -259,11 +261,11 @@ digraph initialization {
 
         YN_QUESTION_NODE(reference_dest_is_lval_non_const, `Is the destination an lvalue reference to a non-const type?', `[dcl.init.ref]/5.2', reference_dest_non_const_ill_formed, reference_dest_is_volatile)
 
-        reference_dest_non_const_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+        ILL_FORMED_NODE(reference_dest_non_const_ill_formed)
 
         YN_QUESTION_NODE(reference_dest_is_volatile, `Is the destination's referenced type volatile-qualified', `[dcl.init.ref]/5.2', reference_dest_volatile_ill_formed, reference_rval_conv_source_is_rvalue)
 
-        reference_dest_volatile_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+        ILL_FORMED_NODE(reference_dest_volatile_ill_formed)
 
         YN_QUESTION_NODE(reference_rval_conv_source_is_rvalue, `Is the initializer an rvalue?', `[dcl.init.ref]/5.3.1', reference_rval_conv_source_is_rvalue_bitfield, reference_rval_conv_source_is_function_lval)
 
@@ -307,7 +309,7 @@ digraph initialization {
 
         YN_QUESTION_NODE(reference_temp_user_defined_conv_is_ill_formed, `Would the non-reference copy-initialization be ill-formed?', `[dcl.init.ref]/5.4.1', reference_temp_user_defined_conv_ill_formed, reference_temp_user_defined_conv_direct_initialize)
 
-        reference_temp_user_defined_conv_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+        ILL_FORMED_NODE(reference_temp_user_defined_conv_ill_formed)
 
         INSTRUCTION_NODE(reference_temp_user_defined_conv_direct_initialize, `The result of the call to the conversion function, as described by non-reference copy-initialization, is used to direct-initialize the reference. For the direct-initialization, user-defined conversions are not considered.', `[dcl.init.ref]/5.4.1')
             LINK_TO_DONE(reference_temp_user_defined_conv_direct_initialize)
@@ -327,7 +329,7 @@ digraph initialization {
 
         YN_QUESTION_NODE(reference_temp_implicit_conv_materialize_is_cv_okay, `Is cv1 more qualified than cv2?', `[dcl.init.ref]/5.4.3', reference_temp_implicit_conv_materialize_is_dest_rval, reference_temp_implicit_conv_materialize_cv_ill_formed)
 
-        reference_temp_implicit_conv_materialize_cv_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+        ILL_FORMED_NODE(reference_temp_implicit_conv_materialize_cv_ill_formed)
 
         QUESTION_NODE(reference_temp_implicit_conv_materialize_is_dest_rval, `Is the destination an rvalue reference?', `[dcl.init.ref]/5.4.3')
             reference_temp_implicit_conv_materialize_is_dest_rval -> reference_temp_implicit_conv_materialize_is_source_lval [label="Yes"]
@@ -337,7 +339,7 @@ digraph initialization {
             reference_temp_implicit_conv_materialize_is_source_lval -> reference_temp_implicit_conv_materialize_source_lval_ill_formed [label="Yes"]
             LINK_TO_DONE(reference_temp_implicit_conv_materialize_is_source_lval, [label="No"])
 
-        reference_temp_implicit_conv_materialize_source_lval_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+        ILL_FORMED_NODE(reference_temp_implicit_conv_materialize_source_lval_ill_formed)
     }
 
     subgraph value_initialization {
@@ -382,11 +384,11 @@ digraph initialization {
 
         YN_QUESTION_NODE(list_designated_initalizer_is_aggregate, `Is the type an aggregate class?', `[dcl.init.list]/3.1', list_designated_initializer_are_identifiers_valid, list_designated_initalizer_nonaggregate_ill_formed)
 
-        list_designated_initalizer_nonaggregate_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+        ILL_FORMED_NODE(list_designated_initalizer_nonaggregate_ill_formed)
 
         YN_QUESTION_NODE(list_designated_initializer_are_identifiers_valid, `Do the designators form a subsequence of the ordered idenitifiers in the direct non-static data members of the type?', `[dcl.init.list]/3.1', list_designated_initializer_aggregate_init, list_designated_initalizer_initializers_ill_formed)
 
-        list_designated_initalizer_initializers_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+        ILL_FORMED_NODE(list_designated_initalizer_initializers_ill_formed)
 
         QUESTION_NODE(list_designated_initializer_aggregate_init, `Aggregate initialization is performed.', `[dcl.init.list]/3.1')
         list_designated_initializer_aggregate_init -> aggregate_initialization_head
@@ -450,7 +452,7 @@ digraph initialization {
 
         YN_QUESTION_NODE_NO_CITE(list_initializer_list_is_narrowing, `Is a narrowing conversion required to initialize any of the elements?', list_initializer_list_narrowing_ill_formed, list_initializer_list_init_object)
 
-        list_initializer_list_narrowing_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+        ILL_FORMED_NODE(list_initializer_list_narrowing_ill_formed)
 
         INSTRUCTION_NODE(list_initializer_list_init_object, `The initializer_list is constructed to refer to the materialized array.')
             LINK_TO_DONE(list_initializer_list_init_object)
@@ -464,7 +466,7 @@ digraph initialization {
             list_class_is_narrowing -> list_class_narrowing_ill_formed [label="Yes"]
             LINK_TO_DONE(list_class_is_narrowing, [label="No"])
 
-        list_class_narrowing_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+        ILL_FORMED_NODE(list_class_narrowing_ill_formed)
 
         YN_QUESTION_NODE(list_is_enum, `Is the type an enumeration?', `[dcl.init.list]/3.8', list_enum_is_fixed, list_final_is_singleton)
 
@@ -489,7 +491,7 @@ digraph initialization {
         INSTRUCTION_NODE(list_enum_initialization, `The object is initialized with the value T(u).')
             LINK_TO_DONE(list_enum_initialization)
 
-        list_enum_narrowing_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+        ILL_FORMED_NODE(list_enum_narrowing_ill_formed)
 
         // Final just because I couldn't come up with a better name for it. "Final" as in "last".
 
@@ -516,7 +518,7 @@ digraph initialization {
             LINK_TO_DONE(list_final_singleton_is_narrowing, [label="No"])
             list_final_singleton_is_narrowing -> list_final_singleton_narrowing_ill_formed [label="Yes"]
 
-        list_final_singleton_narrowing_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+        ILL_FORMED_NODE(list_final_singleton_narrowing_ill_formed)
 
         YN_QUESTION_NODE(list_ref_prvalue_is_ref, `Is the destination type a reference type?', `[dcl.init.list]/3.10', list_ref_prvalue_prvalue_generated, list_final_is_empty)
 
@@ -543,7 +545,7 @@ digraph initialization {
         INSTRUCTION_NODE(list_final_empty_value_init, `The object is value-initialized.', `[dcl.init.list]/3.12')
             LINK_TO_DONE(list_final_empty_value_init)
 
-        list_nothing_else_ill_formed [label = "The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]
+        ILL_FORMED_NODE(list_nothing_else_ill_formed)
 
     }
 }

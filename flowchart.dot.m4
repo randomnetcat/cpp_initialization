@@ -390,7 +390,7 @@ digraph initialization {
 
         ILL_FORMED_NODE(list_designated_initalizer_initializers_ill_formed)
 
-        QUESTION_NODE(list_designated_initializer_aggregate_init, `Aggregate initialization is performed.', `[dcl.init.list]/3.1')
+        INSTRUCTION_NODE(list_designated_initializer_aggregate_init, `Aggregate initialization is performed.', `[dcl.init.list]/3.1')
         list_designated_initializer_aggregate_init -> aggregate_initialization_head
 
         YN_QUESTION_NODE(list_is_aggregate_class, `Is the type an aggregate class?', `[dcl.init.list]/3.2', list_aggregate_is_list_singleton, list_is_type_char_array)

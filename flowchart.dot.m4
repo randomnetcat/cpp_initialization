@@ -634,7 +634,7 @@ digraph initialization {
 
         QUESTION_NODE(aggregate_initialize_nonexplicit_nonunion_is_reference, `Is the element a reference?', `[dcl.init.aggr]/5.2')
             aggregate_initialize_nonexplicit_nonunion_is_reference -> aggregate_initialize_nonexplicit_nonunion_copy_init [label="No"]
-            LINK_TO_ILL_FORMED(aggregate_initialize_nonexplicit_nonunion_is_reference)
+            LINK_TO_ILL_FORMED(aggregate_initialize_nonexplicit_nonunion_is_reference, [label="Yes"])
 
         INSTRUCTION_NODE(aggregate_initialize_nonexplicit_nonunion_copy_init, `The element is copy-initialized from an empty initializer list.', `[dcl.init.aggr]/5.2')
             aggregate_initialize_nonexplicit_nonunion_copy_init -> aggregate_initialize_nonexplicit_nonunion_repeat_next

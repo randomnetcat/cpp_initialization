@@ -570,21 +570,21 @@ digraph initialization {
             LINK_TO_ILL_FORMED(aggregate_explicit_designated_are_designators_valid, [label="No"])
 
         INSTRUCTION_NODE(aggregate_explicit_desginated, `The explicitly initialized elements are those named by the designator'`''`s initializers '`(or those that contain the named elements)', `[dcl.init.aggr]/3.1')
-            aggregate_explicit_desginated -> aggregate_initialize_explicit
+            aggregate_explicit_desginated -> aggregate_explicit_is_union
 
         YN_QUESTION_NODE(aggregate_explicit_is_init_list, `Is the initializer list an initializer-list' `(i.e. does it have at least one element)?', `[dcl.init.aggr]/3.2', aggregate_explicit_init_list, aggregate_explicit_empty)
 
         INSTRUCTION_NODE(aggregate_explicit_init_list, `The explicitly initialized elements are the first elements of the aggregate, matching the number in the initializer list.', `[dcl.init.aggr]/3.2')
-            aggregate_explicit_init_list -> aggregate_explicit_list_is_union
+            aggregate_explicit_init_list -> aggregate_explicit_is_union
 
-        YN_QUESTION_NODE(aggregate_explicit_list_is_union, `Is the aggregate a union?', `[dcl.init.aggr]/19', aggregate_explicit_list_union_is_excess_explicit_init, aggregate_initialize_explicit)
+        YN_QUESTION_NODE(aggregate_explicit_is_union, `Is the aggregate a union?', `[dcl.init.aggr]/19', aggregate_explicit_list_union_is_excess_explicit_init, aggregate_initialize_explicit)
 
         QUESTION_NODE(aggregate_explicit_list_union_is_excess_explicit_init, `Is there more than one explicitly initialized element?', `[dcl.init.list]/19')
             LINK_TO_ILL_FORMED(aggregate_explicit_list_union_is_excess_explicit_init, [label="Yes"])
             aggregate_explicit_list_union_is_excess_explicit_init -> aggregate_initialize_explicit [label="No"]
 
         INSTRUCTION_NODE(aggregate_explicit_empty, `The initializer list is \"{}\", and there are no explicitly initialized elements.', `[dcl.init.aggr]/3.3')
-            aggregate_explicit_empty -> aggregate_initialize_explicit
+            aggregate_explicit_empty -> aggregate_explicit_is_union
 
         INSTRUCTION_NODE(aggregate_initialize_explicit, `The explicitly initialized elements are initialized as follows:', `[dcl.init.aggr]/4')
             aggregate_initialize_explicit -> aggregate_initialize_explicit_foreach

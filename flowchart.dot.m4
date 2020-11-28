@@ -579,7 +579,7 @@ digraph initialization {
 
         YN_QUESTION_NODE(aggregate_explicit_is_union, `Is the aggregate a union?', `[dcl.init.aggr]/19', aggregate_explicit_list_union_is_excess_explicit_init, aggregate_initialize_explicit)
 
-        QUESTION_NODE(aggregate_explicit_list_union_is_excess_explicit_init, `Is there more than one explicitly initialized element?', `[dcl.init.list]/19')
+        QUESTION_NODE(aggregate_explicit_list_union_is_excess_explicit_init, `Is there more than one explicitly initialized element?', `[dcl.init.aggr]/19')
             LINK_TO_ILL_FORMED(aggregate_explicit_list_union_is_excess_explicit_init, [label="Yes"])
             aggregate_explicit_list_union_is_excess_explicit_init -> aggregate_initialize_explicit [label="No"]
 

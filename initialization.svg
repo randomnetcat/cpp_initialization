@@ -3556,7 +3556,7 @@
 <title>aggregate_explicit_list_union_is_excess_explicit_init</title>
 <polygon fill="none" stroke="#000000" points="954,-3542 649,-3504 954,-3466 1259,-3504 954,-3542"/>
 <text text-anchor="middle" x="954" y="-3507.8" font-family="Times,serif" font-size="14.00" fill="#000000">Is there more than one explicitly initialized element?</text>
-<text text-anchor="middle" x="954" y="-3492.8" font-family="Times,serif" font-size="14.00" fill="#000000">[dcl.init.list]/19</text>
+<text text-anchor="middle" x="954" y="-3492.8" font-family="Times,serif" font-size="14.00" fill="#000000">[dcl.init.aggr]/19</text>
 </g>
 <!-- aggregate_explicit_is_union&#45;&gt;aggregate_explicit_list_union_is_excess_explicit_init -->
 <g id="edge293" class="edge">

@@ -32,8 +32,7 @@ digraph initialization {
     
     YN_QUESTION_NODE(is_dest_reference, `Is the destination type a reference type?', `[dcl.init]/16.2', reference_initialization_head, is_char_arr_init)
     
-    QUESTION_NODE(is_char_arr_init, `Is the destination type a char[] or a char*_t[]?', `[dcl.init]/16.3')
-        is_char_arr_init -> is_char_arr_literal_init [label="Yes"]
+    YN_QUESTION_NODE(is_char_arr_init, `Is the destination type a char[] or a char*_t[]?', `[dcl.init]/16.3', is_char_arr_literal_init, is_initializer_empty_parens)
     
     YN_QUESTION_NODE(is_char_arr_literal_init, `Is the initializer a string literal?', `[dcl.init]/16.3', string_literal_initialization_head, is_initializer_empty_parens)
 

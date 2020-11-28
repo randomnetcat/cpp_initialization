@@ -622,7 +622,7 @@ digraph initialization {
         INSTRUCTION_NODE(aggregate_initialize_explicit_repeat_next, `Repeat with the next explicitly initialized element.')
             aggregate_initialize_explicit_repeat_next -> aggregate_initialize_nonexplicit_is_union [label="Once done with all explicitly initialized elements"]
 
-        YN_QUESTION_NODE(aggregate_initialize_nonexplicit_is_union, `Is the aggregate a union?', `[dcl.init.aggr]/5', aggregate_initialize_nonexplicit_nonunion, aggregate_initialize_nonexplicit_union_is_list_empty)
+        YN_QUESTION_NODE(aggregate_initialize_nonexplicit_is_union, `Is the aggregate a union?', `[dcl.init.aggr]/5', aggregate_initialize_nonexplicit_union_is_list_empty, aggregate_initialize_nonexplicit_nonunion)
 
         INSTRUCTION_NODE(aggregate_initialize_nonexplicit_nonunion, `For each non-explicitly-initialized element:', `[dcl.init.aggr]/5')
             aggregate_initialize_nonexplicit_nonunion -> aggregate_initialize_nonexplicit_nonunion_has_dflt_mem_init

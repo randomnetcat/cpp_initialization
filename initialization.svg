@@ -839,8 +839,8 @@
 <!-- class_aggregate_paren_k_defn -->
 <g id="node50" class="node">
 <title>class_aggregate_paren_k_defn</title>
-<polygon fill="none" stroke="#000000" points="8071,-2920 7693,-2920 7693,-2884 8071,-2884 8071,-2920"/>
-<text text-anchor="middle" x="7882" y="-2898.3" font-family="Times,serif" font-size="14.00" fill="#000000">Let k b ethe number of elements in the initializers expression list.&#39;</text>
+<polygon fill="none" stroke="#000000" points="8072,-2920 7692,-2920 7692,-2884 8072,-2884 8072,-2920"/>
+<text text-anchor="middle" x="7882" y="-2898.3" font-family="Times,serif" font-size="14.00" fill="#000000">Let k be the number of elements in the initializer&#39;s expression list.&#39;</text>
 </g>
 <!-- class_aggregate_paren_n_defn&#45;&gt;class_aggregate_paren_k_defn -->
 <g id="edge57" class="edge">

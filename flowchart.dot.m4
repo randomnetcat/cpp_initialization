@@ -124,7 +124,7 @@ digraph initialization {
             INSTRUCTION_NODE(class_aggregate_paren_n_defn, `Let n be the number of elements in the aggregate.')
                 class_aggregate_paren_n_defn -> class_aggregate_paren_k_defn
 
-            INSTRUCTION_NODE(class_aggregate_paren_k_defn, `Let k b ethe number of elements in the initializer's expression list.')
+            INSTRUCTION_NODE(class_aggregate_paren_k_defn, `Let k be the number of elements in the initializer'`''s expression list.')
                 class_aggregate_paren_k_defn -> class_aggregate_paren_is_k_gt_n
 
             YN_QUESTION_NODE_NO_CITE(class_aggregate_paren_is_k_gt_n, `Is k > n?', class_aggregate_paren_ill_formed, class_aggregate_paren_initialize_first_k)

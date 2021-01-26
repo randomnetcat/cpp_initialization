@@ -615,7 +615,7 @@ digraph initialization {
 
         YN_QUESTION_NODE(aggregate_initialize_explicit_is_narrowing_checked, `Is the initializer of the form \"assignment-expression\" or \"= assignment-expression\"?', `[dcl.init.aggr]/4.2', aggregate_initialize_explicit_is_narrowing, aggregate_initialize_explicit_repeat_next)
 
-        QUESTION_NODE(aggregate_initialize_explicit_is_narrowing, `Is a narrowing conversion required to convert the expression?', `[dcl.init.aggr/4.2')
+        QUESTION_NODE(aggregate_initialize_explicit_is_narrowing, `Is a narrowing conversion required to convert the expression?', `[dcl.init.aggr]/4.2')
             LINK_TO_ILL_FORMED(aggregate_initialize_explicit_is_narrowing, [label="Yes"])
             aggregate_initialize_explicit_is_narrowing -> aggregate_initialize_explicit_repeat_next [label="No"]
 

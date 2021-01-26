@@ -27,6 +27,7 @@ jobs:
         
       - name: Deploy generated to Github Pages
         uses: crazy-max/ghaction-github-pages@v2.0.0
+        if: github.ref == 'refs/heads/main'
         with:
           target_branch: gh-pages
           keep_history: true

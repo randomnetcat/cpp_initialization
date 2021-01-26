@@ -3797,7 +3797,7 @@
 <title>aggregate_initialize_explicit_is_narrowing</title>
 <polygon fill="none" stroke="#000000" points="1334,-1776 981,-1738 1334,-1700 1687,-1738 1334,-1776"/>
 <text text-anchor="middle" x="1334" y="-1741.8" font-family="Times,serif" font-size="14.00" fill="#000000">Is a narrowing conversion required to convert the expression?</text>
-<text text-anchor="middle" x="1334" y="-1726.8" font-family="Times,serif" font-size="14.00" fill="#000000">[dcl.init.aggr/4.2</text>
+<text text-anchor="middle" x="1334" y="-1726.8" font-family="Times,serif" font-size="14.00" fill="#000000">[dcl.init.aggr]/4.2</text>
 </g>
 <!-- aggregate_initialize_explicit_is_narrowing_checked&#45;&gt;aggregate_initialize_explicit_is_narrowing -->
 <g id="edge311" class="edge">

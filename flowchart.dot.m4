@@ -329,7 +329,7 @@ digraph initialization {
             reference_temp_implicit_conv_materialize_is_reference_related -> reference_temp_implicit_conv_materialize_is_cv_okay [label="Yes"]
             LINK_TO_DONE(reference_temp_implicit_conv_materialize_is_reference_related, [label="No"])
 
-        YN_QUESTION_NODE(reference_temp_implicit_conv_materialize_is_cv_okay, `Is cv1 more qualified than cv2?', `[dcl.init.ref]/5.4.3', reference_temp_implicit_conv_materialize_is_dest_rval, reference_temp_implicit_conv_materialize_cv_ill_formed)
+        YN_QUESTION_NODE(reference_temp_implicit_conv_materialize_is_cv_okay, `Is cv1 at least as qualified as cv2?', `[dcl.init.ref]/5.4.3', reference_temp_implicit_conv_materialize_is_dest_rval, reference_temp_implicit_conv_materialize_cv_ill_formed)
 
         ILL_FORMED_NODE(reference_temp_implicit_conv_materialize_cv_ill_formed)
 

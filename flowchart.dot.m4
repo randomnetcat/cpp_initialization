@@ -25,7 +25,7 @@ ILL_FORMED_NODE(`$1'`__generated_ill_formed')
 ')
 
 digraph initialization {
-    start [label="So you want to initialize something?\n[dcl.init]/16\nCopyright Jason Cobb 2020, Licensed CC BY 4.0", style=filled, fillcolor=green, shape=box, color=green, fontcolor=white]
+    start [label="So you want to initialize something?\n[dcl.init]/16\nCopyright Janet Cobb 2020, Licensed CC BY 4.0", style=filled, fillcolor=green, shape=box, color=green, fontcolor=white]
         start -> is_braced
 
     YN_QUESTION_NODE(is_braced, `Is the initializer in braces?', `[dcl.init]/16.1', list_initialization_head, is_dest_reference)

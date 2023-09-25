@@ -188,7 +188,7 @@ digraph initialization {
 
         ILL_FORMED_NODE(string_literal_ill_formed_too_many)
 
-        string_literal_initialize_rest [label="Zero-initialize the remaining elements of the array (if any)."]
+        INSTRUCTION_NODE(string_literal_initialize_rest, `Zero-initialize the remaining elements of the array (if any).')
             LINK_TO_DONE(string_literal_initialize_rest)
     }
 

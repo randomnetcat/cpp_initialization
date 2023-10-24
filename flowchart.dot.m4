@@ -411,7 +411,7 @@ digraph initialization {
 
         YN_QUESTION_NODE(list_is_type_char_array, `Is the type a character array?', `[dcl.init.list]/3.3', list_char_array_is_singleton, list_is_aggregate)
 
-        YN_QUESTION_NODE(list_char_array_is_singleton, `Does the iniitializer list have a single element?', `[dcl.init.list/]3.3', list_char_array_singleton_is_typed, list_is_aggregate)
+        YN_QUESTION_NODE(list_char_array_is_singleton, `Does the initializer list have a single element?', `[dcl.init.list/]3.3', list_char_array_singleton_is_typed, list_is_aggregate)
 
         YN_QUESTION_NODE(list_char_array_singleton_is_typed, `Is that element an appropriately-typed string-literal?', `[dcl.init.list]/3.3', list_char_array_string_literal_init, list_is_aggregate)
 
@@ -594,7 +594,7 @@ digraph initialization {
 
         YN_QUESTION_NODE(aggregate_initialize_explicit_is_anon_union, `Is the element an anonymous union object?', `[dcl.init.aggr]/4.1', aggregate_initialize_explicit_union_is_designated, aggregate_initialize_explicit_copy_kind)
 
-        YN_QUESTION_NODE(aggregate_initialize_explicit_union_is_designated, `Is the initializer-list a designated-iniitializer-list?', `[dcl.init.aggr]/4.1', aggregate_initialize_explicit_union_is_duplicate_designator, aggregate_initialize_explicit_copy_kind)
+        YN_QUESTION_NODE(aggregate_initialize_explicit_union_is_designated, `Is the initializer-list a designated-initializer-list?', `[dcl.init.aggr]/4.1', aggregate_initialize_explicit_union_is_duplicate_designator, aggregate_initialize_explicit_copy_kind)
 
         QUESTION_NODE(aggregate_initialize_explicit_union_is_duplicate_designator, `Is there more than one designator that names a member of that anonymous union?', `[dcl.init.aggr]/4.1')
             LINK_TO_ILL_FORMED(aggregate_initialize_explicit_union_is_duplicate_designator, [label="Yes"])

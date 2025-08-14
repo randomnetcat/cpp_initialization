@@ -45,29 +45,29 @@ digraph initialization {
 		value_initialization_head;
 	}
 
-    start [label="So you want to initialize something?\n[dcl.init]/16\nCopyright Janet Cobb 2020, Licensed CC BY 4.0", style=filled, fillcolor=green, shape=box, color=green, fontcolor=white]
+    start [label="So you want to initialize something?\n[dcl.init.general]/16\nCopyright Janet Cobb 2020, Licensed CC BY 4.0", style=filled, fillcolor=green, shape=box, color=green, fontcolor=white]
         start -> is_direct_braced_init_list
 
-	YN_QUESTION_NODE(is_direct_braced_init_list, "Is the initializer a non-parenthesized braced-init-list?", "[dcl.init]/16.1", list_initialization_head, is_copy_braced_init_list)
-	YN_QUESTION_NODE(is_copy_braced_init_list, "Is the initializer of the form \"= braced-init-list\"?", "[dcl.init]/16.1", list_initialization_head, is_dest_reference)
+	YN_QUESTION_NODE(is_direct_braced_init_list, "Is the initializer a non-parenthesized braced-init-list?", "[dcl.init.general]/16.1", list_initialization_head, is_copy_braced_init_list)
+	YN_QUESTION_NODE(is_copy_braced_init_list, "Is the initializer of the form \"= braced-init-list\"?", "[dcl.init.general]/16.1", list_initialization_head, is_dest_reference)
     
-    YN_QUESTION_NODE(is_dest_reference, "Is the destination type a reference type?", "[dcl.init]/16.2", reference_initialization_head, is_char_arr_init_char:n)
+    YN_QUESTION_NODE(is_dest_reference, "Is the destination type a reference type?", "[dcl.init.general]/16.2", reference_initialization_head, is_char_arr_init_char:n)
 
-	YN_QUESTION_NODE(is_char_arr_init_char, "Is the destination type an array of characters?", "[dcl.init]/16.3", is_char_arr_literal_init, is_char_arr_init_char8)
-	YN_QUESTION_NODE(is_char_arr_init_char8, "Is the destination type an array of char8_t?", "[dcl.init]/16.3", is_char_arr_literal_init, is_char_arr_init_char16)
-	YN_QUESTION_NODE(is_char_arr_init_char16, "Is the destination type an array of char16_t?", "[dcl.init]/16.3", is_char_arr_literal_init, is_char_arr_init_char32)
-	YN_QUESTION_NODE(is_char_arr_init_char32, "Is the destination type an array of char32_t?", "[dcl.init]/16.3", is_char_arr_literal_init, is_char_arr_init_wchar)
-	YN_QUESTION_NODE(is_char_arr_init_wchar, "Is the destination type an array of wchar_t?", "[dcl.init]/16.3", is_char_arr_literal_init, is_initializer_empty_parens)
+	YN_QUESTION_NODE(is_char_arr_init_char, "Is the destination type an array of characters?", "[dcl.init.general]/16.3", is_char_arr_literal_init, is_char_arr_init_char8)
+	YN_QUESTION_NODE(is_char_arr_init_char8, "Is the destination type an array of char8_t?", "[dcl.init.general]/16.3", is_char_arr_literal_init, is_char_arr_init_char16)
+	YN_QUESTION_NODE(is_char_arr_init_char16, "Is the destination type an array of char16_t?", "[dcl.init.general]/16.3", is_char_arr_literal_init, is_char_arr_init_char32)
+	YN_QUESTION_NODE(is_char_arr_init_char32, "Is the destination type an array of char32_t?", "[dcl.init.general]/16.3", is_char_arr_literal_init, is_char_arr_init_wchar)
+	YN_QUESTION_NODE(is_char_arr_init_wchar, "Is the destination type an array of wchar_t?", "[dcl.init.general]/16.3", is_char_arr_literal_init, is_initializer_empty_parens)
 
-    YN_QUESTION_NODE(is_char_arr_literal_init, "Is the initializer a string literal?", "[dcl.init]/16.3", string_literal_initialization_head, is_initializer_empty_parens)
+    YN_QUESTION_NODE(is_char_arr_literal_init, "Is the initializer a string literal?", "[dcl.init.general]/16.3", string_literal_initialization_head, is_initializer_empty_parens)
 
-    YN_QUESTION_NODE(is_initializer_empty_parens, "Is the initializer \"()\"?", "[dcl.init]/16.4", empty_parens_value_init, is_dest_array)
+    YN_QUESTION_NODE(is_initializer_empty_parens, "Is the initializer \"()\"?", "[dcl.init.general]/16.4", empty_parens_value_init, is_dest_array)
 	INST_VALUE_INIT(empty_parens_value_init, "[dcl.init/16.3]")
 
-    YN_QUESTION_NODE(is_dest_array, "Is the destination type an array?", "[dcl.init]/16.5", array_initialization_head, is_dest_class_type)
+    YN_QUESTION_NODE(is_dest_array, "Is the destination type an array?", "[dcl.init.general]/16.5", array_initialization_head, is_dest_class_type)
 
     subgraph cluster_array_initialization {
-        INIT_AS_FOLLOWS(array_initialization_head, "[dcl.init]/16.5")
+        INIT_AS_FOLLOWS(array_initialization_head, "[dcl.init.general]/16.5")
             array_initialization_head -> array_is_paren_expr_list
 
 		YN_QUESTION_NODE(array_is_paren_expr_list, "Is the initializer of the form \"( expression-list )\"?", "CWG2824 resolution", array_x_definition, NEW_ILL_FORMED())
@@ -92,56 +92,56 @@ digraph initialization {
 		SOFT_REF_VALUE_INIT(array_value_init_n)
     }
 
-    YN_QUESTION_NODE(is_dest_class_type, "Is the destination type a (possibly cv-qualified) class type?", "[dcl.init]/16.6", class_dest_initialization_head, is_source_class_type)
+    YN_QUESTION_NODE(is_dest_class_type, "Is the destination type a (possibly cv-qualified) class type?", "[dcl.init.general]/16.6", class_dest_initialization_head, is_source_class_type)
 
-    YN_QUESTION_NODE(is_source_class_type, "Is the source type a (possibly cv-qualified) class type?", "[dcl.init]/16.7", class_source_initialization_head, is_direct_init_for_nullptr)
+    YN_QUESTION_NODE(is_source_class_type, "Is the source type a (possibly cv-qualified) class type?", "[dcl.init.general]/16.7", class_source_initialization_head, is_direct_init_for_nullptr)
 
-    YN_QUESTION_NODE(is_direct_init_for_nullptr, "Is the initialization direct-initialization?", "[dcl.init]/16.8", is_source_type_nullptr, standard_conv_seq_initialization_head)    
+    YN_QUESTION_NODE(is_direct_init_for_nullptr, "Is the initialization direct-initialization?", "[dcl.init.general]/16.8", is_source_type_nullptr, standard_conv_seq_initialization_head)    
 
-    YN_QUESTION_NODE(is_source_type_nullptr, "Is the source type std::nullptr_t?", "[dcl.init]/16.8", is_dest_type_bool_for_nullptr, standard_conv_seq_initialization_head)
+    YN_QUESTION_NODE(is_source_type_nullptr, "Is the source type std::nullptr_t?", "[dcl.init.general]/16.8", is_dest_type_bool_for_nullptr, standard_conv_seq_initialization_head)
 
-    YN_QUESTION_NODE(is_dest_type_bool_for_nullptr, "Is the destination type bool?", "[dcl.init]/16.8", nullptr_to_bool_init, standard_conv_seq_initialization_head)
+    YN_QUESTION_NODE(is_dest_type_bool_for_nullptr, "Is the destination type bool?", "[dcl.init.general]/16.8", nullptr_to_bool_init, standard_conv_seq_initialization_head)
 
-    INSTRUCTION_NODE(nullptr_to_bool_init, "Initialize the bool to false.", "[dcl.init]/16.8")
+    INSTRUCTION_NODE(nullptr_to_bool_init, "Initialize the bool to false.", "[dcl.init.general]/16.8")
     -> NEW_DONE()
 
     subgraph cluster_class_dest_initialization {
-        INIT_AS_FOLLOWS(class_dest_initialization_head, "[dcl.init]/16.6")
+        INIT_AS_FOLLOWS(class_dest_initialization_head, "[dcl.init.general]/16.6")
 		-> class_is_initializer_prvalue
 
-        YN_QUESTION_NODE(class_is_initializer_prvalue, "Is the initializer a prvalue?", "[dcl.init]/16.6.1", class_is_initializer_prvalue_same_class, class_is_copy_init)
+        YN_QUESTION_NODE(class_is_initializer_prvalue, "Is the initializer a prvalue?", "[dcl.init.general]/16.6.1", class_is_initializer_prvalue_same_class, class_is_copy_init)
 
-        YN_QUESTION_NODE(class_is_initializer_prvalue_same_class, "Is the cv-unqualified version of the source type the same class as the class of the destination?", "[dcl.init]/16.6.1", class_initialize_by_prvalue, class_is_copy_init)
+        YN_QUESTION_NODE(class_is_initializer_prvalue_same_class, "Is the cv-unqualified version of the source type the same class as the class of the destination?", "[dcl.init.general]/16.6.1", class_initialize_by_prvalue, class_is_copy_init)
 
-        INSTRUCTION_NODE(class_initialize_by_prvalue, "Use the prvalue to initialize the destination object.", "[dcl.init]/16.6.1")
+        INSTRUCTION_NODE(class_initialize_by_prvalue, "Use the prvalue to initialize the destination object.", "[dcl.init.general]/16.6.1")
 		-> NEW_DONE()
 
-        YN_QUESTION_NODE(class_is_copy_init, "Is the initialization copy-initialization?", "[dcl.init]/16.6.2", class_is_copy_init_same_class, class_is_direct_init)
+        YN_QUESTION_NODE(class_is_copy_init, "Is the initialization copy-initialization?", "[dcl.init.general]/16.6.2", class_is_copy_init_same_class, class_is_direct_init)
         
-        YN_QUESTION_NODE(class_is_copy_init_same_class, "Is the cv-unqualified version of the source type the same class as the class of the destination?", "[dcl.init]/16.6.2", class_consider_constructors, class_is_copy_init_derived_class)
-        YN_QUESTION_NODE(class_is_copy_init_derived_class, "Is the cv-unqualified version of the source type a derived class of the destination type?", "[dcl.init]/16.6.2", class_consider_constructors, class_user_defined_conv_head)
+        YN_QUESTION_NODE(class_is_copy_init_same_class, "Is the cv-unqualified version of the source type the same class as the class of the destination?", "[dcl.init.general]/16.6.2", class_consider_constructors, class_is_copy_init_derived_class)
+        YN_QUESTION_NODE(class_is_copy_init_derived_class, "Is the cv-unqualified version of the source type a derived class of the destination type?", "[dcl.init.general]/16.6.2", class_consider_constructors, class_user_defined_conv_head)
 
-        INSTRUCTION_NODE(class_is_direct_init, "The initialization is direct-initialization.", "[dcl.init]/16.6.2")
+        INSTRUCTION_NODE(class_is_direct_init, "The initialization is direct-initialization.", "[dcl.init.general]/16.6.2")
             class_is_direct_init -> class_consider_constructors
 
-        INSTRUCTION_NODE(class_consider_constructors, "Enumerate constructors and select the best through overload resolution.", "[dcl.init]/16.6.2")
+        INSTRUCTION_NODE(class_consider_constructors, "Enumerate constructors and select the best through overload resolution.", "[dcl.init.general]/16.6.2")
             class_consider_constructors -> class_constructors_is_resolution_successful
 
-        YN_QUESTION_NODE(class_constructors_is_resolution_successful, "Is overload resolution succesful?", "[dcl.init]/16.6.2.1", class_constructors_use_selected, class_is_constructor_viable)
+        YN_QUESTION_NODE(class_constructors_is_resolution_successful, "Is overload resolution succesful?", "[dcl.init.general]/16.6.2.1", class_constructors_use_selected, class_is_constructor_viable)
 
-        INSTRUCTION_NODE(class_constructors_use_selected, "Call the selected constructor to initialize the object with the initializer expression or expression-list as its argument(s).", "[dcl.init]/16.6.2.1")
+        INSTRUCTION_NODE(class_constructors_use_selected, "Call the selected constructor to initialize the object with the initializer expression or expression-list as its argument(s).", "[dcl.init.general]/16.6.2.1")
 		-> NEW_DONE()
 
-		YN_QUESTION_NODE(class_is_constructor_viable, "Is a constructor viable?", "[dcl.init]/16.6.2.2", class_ill_formed, class_is_aggregate) 
+		YN_QUESTION_NODE(class_is_constructor_viable, "Is a constructor viable?", "[dcl.init.general]/16.6.2.2", class_ill_formed, class_is_aggregate) 
 
-        YN_QUESTION_NODE(class_is_aggregate, "Is the destination type an aggregate class?", "[dcl.init]/16.6.2.2", class_aggregate_is_initializer_expr_list, class_ill_formed)
+        YN_QUESTION_NODE(class_is_aggregate, "Is the destination type an aggregate class?", "[dcl.init.general]/16.6.2.2", class_aggregate_is_initializer_expr_list, class_ill_formed)
 
-        YN_QUESTION_NODE(class_aggregate_is_initializer_expr_list, "Is the initializer a parenthesized expression-list?", "[dcl.init]/16.6.2.2", class_aggregate_paren_init_head, class_ill_formed)
+        YN_QUESTION_NODE(class_aggregate_is_initializer_expr_list, "Is the initializer a parenthesized expression-list?", "[dcl.init.general]/16.6.2.2", class_aggregate_paren_init_head, class_ill_formed)
 
         ILL_FORMED_NODE(class_ill_formed)
 
         subgraph class_aggregate_paren_init {
-            INIT_AS_FOLLOWS(class_aggregate_paren_init_head, "[dcl.init]/16.6.2.2")
+            INIT_AS_FOLLOWS(class_aggregate_paren_init_head, "[dcl.init.general]/16.6.2.2")
 			-> INSTRUCTION_NODE(class_aggregate_paren_e_defn, "Let e_1, ..., e_k be the elements of the aggregate.")
 			-> INSTRUCTION_NODE(class_aggregate_paren_x_defn, "Let x_1, ..., x_n be the elements of the expression-list.")
 
@@ -159,7 +159,7 @@ digraph initialization {
         }
 
         subgraph class_user_defined_conv {
-            INIT_AS_FOLLOWS(class_user_defined_conv_head, "[dcl.init]/16.6.3")
+            INIT_AS_FOLLOWS(class_user_defined_conv_head, "[dcl.init.general]/16.6.3")
             -> INSTRUCTION_NODE(class_user_defined_conv_enumerate, "Enumerate the user-defined conversions that can convert from the source type to the destination type or (when a conversion function is used) to a derived class thereof (as described in [over.match.copy])")
 			-> INSTRUCTION_NODE(class_user_defined_conv_overload_resolution, "Use overload resolution to select the best conversion.")
 			-> class_user_defined_conv_is_possible
@@ -215,7 +215,7 @@ digraph initialization {
     }
 
     subgraph cluster_class_source_initialization {
-        INIT_AS_FOLLOWS(class_source_initialization_head, "[dcl.init]/16.7")
+        INIT_AS_FOLLOWS(class_source_initialization_head, "[dcl.init.general]/16.7")
         -> INSTRUCTION_NODE(class_source_enumerate_conversion_functions, "Enumerate the applicable conversion functions (as in [over.match.conv]).")
         -> INSTRUCTION_NODE(class_source_overload_resolution, "Use overload resolution to select the best applicable conversion function.")
         -> class_source_conversion_is_impossible
@@ -230,7 +230,7 @@ digraph initialization {
     }
 
     subgraph cluster_standard_conv_seq_initialization {
-        INIT_AS_FOLLOWS(standard_conv_seq_initialization_head, "[dcl.init]/6.9")
+        INIT_AS_FOLLOWS(standard_conv_seq_initialization_head, "[dcl.init.general]/16.9")
         -> INSTRUCTION_NODE(standard_conv_seq_do_init, "Initialize the object using the value of the initializer expression, using a standard conversion sequence if necessary, not considering any user-defined conversions.")
         -> standard_conv_seq_is_possible
 
@@ -355,37 +355,29 @@ digraph initialization {
     }
 
     subgraph cluster_value_initialization {
-        INSTRUCTION_NODE(value_initialization_head, "Value-initialization", "[dcl.init]/8")
+        INSTRUCTION_NODE(value_initialization_head, "Value-initialization", "[dcl.init.general]/9")
             value_initialization_head -> value_is_class
 
-        YN_QUESTION_NODE(value_is_class, "Is the type a class type?", "[dcl.init]/8.1", value_has_dflt_ctor, value_is_array)
+        YN_QUESTION_NODE(value_is_class, "Is the type a (possibly cv-qualified) class type?", "[dcl.init.general]/9.1", value_class_find_dflt_ctor, value_is_array)
 
-        YN_QUESTION_NODE(value_has_dflt_ctor, "Does the type have a default constructor?", "[dcl.init]/8.1.1", value_has_deleted_dflt_ctor, value_default_initialize)
+        INSTRUCTION_NODE(value_class_find_dflt_ctor, "Let C be the constructor selected to default-initialize the object, if any.", "[dcl.init.general]/9.1")
+        -> value_class_dflt_ctor_is_user_provided
 
-        YN_QUESTION_NODE(value_has_deleted_dflt_ctor, "Does the type have a deleted default constructor?", "[dcl.init]/8.1.1", value_default_initialize, value_has_user_dflt_ctor)
+        YN_QUESTION_NODE(value_class_dflt_ctor_is_user_provided, "Is C user-provided?", "[dcl.init.general]/9.1", value_class_dflt_ctor_zero_init, value_class_default_initialize)
+        
+        INSTRUCTION_NODE(value_class_dflt_ctor_zero_init, "The object is zero-initialized.", "[dcl.init.general]/9.1")
+        -> value_class_default_initialize
 
-        YN_QUESTION_NODE(value_has_user_dflt_ctor, "Does the type have a user-provided default constructor?", "[dcl.init]/8.1.1", value_default_initialize, value_zero_initialize_class)
+        INSTRUCTION_NODE(value_class_default_initialize, "The object is default-initialized.", "[dcl.init.general]/9.1")
+        -> NEW_DONE()
 
-        INSTRUCTION_NODE(value_zero_initialize_class, "The object is zero-initialized.")
-            value_zero_initialize_class -> value_check_default
+        YN_QUESTION_NODE(value_is_array, "Is the type an array type?", "[dcl.init.general]/9.2", value_array_semantic_constraints, value_zero_initialize_fallback)
 
-        YN_QUESTION_NODE(value_is_array, "Is the type an array type?", "[dcl.init]/8.2", value_value_initialize_elements, value_zero_initialize_fallback)
+        YN_QUESTION_NODE(value_array_semantic_constraints, "Are the semantic constraints of value-initializing a hypothetical element met?", "[dcl.init.general]/9.2", value_array_initialize_elements, NEW_ILL_FORMED())
+        INSTRUCTION_NODE(value_array_initialize_elements, "Each element of the array is value-initialized.", "[dcl.init.general]/9.2")
 
-        INSTRUCTION_NODE(value_value_initialize_elements, "Each element is value-initialized.")
-            LINK_TO_DONE(value_value_initialize_elements)
-
-        INSTRUCTION_NODE(value_zero_initialize_fallback, "The object is zero-initialized.")
-            LINK_TO_DONE(value_zero_initialize_fallback)
-
-        INSTRUCTION_NODE(value_default_initialize, "The object is default-initialized.", "[dcl.init]/8.1.*")
-            LINK_TO_DONE(value_default_initialize)
-
-        INSTRUCTION_NODE(value_check_default, "The semantic constraints for default-initialization are checked.", "[dcl.init]/8.1.2")
-            value_check_default -> value_has_nontrivial_dflt_ctor
-
-        QUESTION_NODE(value_has_nontrivial_dflt_ctor, "Does the type have a non-trivial default constructor?", "[dcl.init]/8.1.2")
-            value_has_nontrivial_dflt_ctor -> value_default_initialize [label="Yes"]
-            LINK_TO_DONE(value_has_nontrivial_dflt_ctor, [label="No"])
+        INSTRUCTION_NODE(value_zero_initialize_fallback, "The object is zero-initialized.", "[dcl.init.general]/9.3")
+        -> NEW_DONE()
     }
 
     subgraph list_initialization {

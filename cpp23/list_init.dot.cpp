@@ -119,7 +119,7 @@ subgraph list_initialization {
 		YN_QUESTION_NODE(list_enum_is_convertible, "Can v be implicitly converted to U?", "[dcl.init.list]/3.8", list_enum_is_direct, list_final_is_singleton)
 		YN_QUESTION_NODE(list_enum_is_direct, "Is the initialization direct-list-initialization?", "[dcl.init.list]/3.8", list_enum_initialization, list_final_is_singleton)
 
-		INSTRUCTION_NODE(list_enum_initialization, "The object is initialized with the value \"T(v)\" (an explicit type conversion).")
+		INSTRUCTION_NODE(list_enum_initialization, "Initialized the object with the value \"T(v)\" (an explicit type conversion).")
 		-> list_enum_is_narrowing
 
 		YN_QUESTION_NODE(list_enum_is_narrowing, "Is a narrowing conversion required to convert v to U?", "[dcl.init.list]/3.8", NEW_ILL_FORMED(), NEW_DONE())

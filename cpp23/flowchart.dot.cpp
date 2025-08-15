@@ -3,6 +3,8 @@
 digraph initialization {
 	compound="true";
 
+	#include "default_init.dot.cpp"
+	#include "zero_init.dot.cpp"
 	#include "value_init.dot.cpp"
 	#include "string_init.dot.cpp"
 	#include "reference_init.dot.cpp"

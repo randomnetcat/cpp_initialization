@@ -4,36 +4,42 @@
 #include "common.h"
 
 #define NODE_VALUE_INIT_HEAD value_initialization_head
-#define INST_VALUE_INIT(id, ...) { INSTRUCTION_NODE(id, "The object is value-initialized.", __VA_ARGS__); } -> NODE_VALUE_INIT_HEAD
+#define INST_VALUE_INIT(id, ...) { INSTRUCTION_NODE(id, "Value-initialize the objecct.", __VA_ARGS__); } -> NODE_VALUE_INIT_HEAD
 #define INTERNALLY_VALUE_INITS(id) { id -> NODE_VALUE_INIT_HEAD [style="dotted"]; }
+
+#include "default_init.dot.cpp"
+#include "zero_init.dot.cpp"
 
 // [dcl.init.general]/9
 subgraph cluster_value_initialization {
 	INSTRUCTION_NODE(NODE_VALUE_INIT_HEAD, "Value-initialization", "[dcl.init.general]/9")
+	-> INSTRUCTION_NODE(value_defn_t, "Let T be the type of the object.", "[dcl.init.general]/9")
 	-> value_is_class
 
 	// 9.1
 	{
-		YN_QUESTION_NODE(value_is_class, "Is the type a (possibly cv-qualified) class type?", "[dcl.init.general]/9.1", value_class_find_dflt_ctor, value_is_array)
+		YN_QUESTION_NODE(value_is_class, "Is the type a (possibly cv-qualified) class type?", "[dcl.init.general]/9.1", value_class_has_default, value_is_array)
 
-		INSTRUCTION_NODE(value_class_find_dflt_ctor, "Let C be the constructor selected to default-initialize the object, if any.", "[dcl.init.general]/9.1")
-		-> value_class_dflt_ctor_is_user_provided
+		YN_QUESTION_NODE(value_class_has_default, "Does T have a default constructor?", "[dcl.init.general]/9.1", value_class_default_is_deleted, value_class_direct_default_init)
+		YN_QUESTION_NODE(value_class_default_is_deleted, "Is that default constructor deleted?", "[dcl.init.general]/9.1", value_class_direct_default_init, value_class_default_is_user_provided)
+		YN_QUESTION_NODE(value_class_default_is_user_provided, "Is that default constructor user-provided?", "[dcl.init.general]/9.1", value_class_direct_default_init, value_class_dflt_ctor_check_zero)
 
-		YN_QUESTION_NODE(value_class_dflt_ctor_is_user_provided, "Is C user-provided?", "[dcl.init.general]/9.1", value_class_dflt_ctor_zero_init, value_class_default_initialize)
+		INSTRUCTION_NODE(value_class_direct_default_init, "Default-initialize the object.", "[dcl.init.general]/9.1")
+		-> NODE_DEFAULT_INIT_HEAD
 
-		INSTRUCTION_NODE(value_class_dflt_ctor_zero_init, "The object is zero-initialized.", "[dcl.init.general]/9.1")
-		-> value_class_default_initialize
+		INSTRUCTION_NODE(value_class_dflt_ctor_check_zero, "Check the semantic constraints for default-initialization.", "[dcl.init.general]/9.1")
+		-> INSTRUCTION_NODE(value_class_dflt_ctor_zero_init, "Zero-initialize the object.", "[dcl.init.general]/9.1")
+		-> INSTRUCTION_NODE(value_class_dflt_ctor_default_init, "Default-initialize the object.", "[dcl.init.general]/9.1")
+		-> NODE_DEFAULT_INIT_HEAD
 
-		INSTRUCTION_NODE(value_class_default_initialize, "The object is default-initialized.", "[dcl.init.general]/9.1")
-		-> NEW_DONE()
+		INTERNALLY_ZERO_INITS(value_class_dflt_ctor_zero_init)
 	}
 
 	// 9.3
 	{
-		YN_QUESTION_NODE(value_is_array, "Is the type an array type?", "[dcl.init.general]/9.2", value_array_semantic_constraints, value_zero_initialize_fallback)
+		YN_QUESTION_NODE(value_is_array, "Is the type an array type?", "[dcl.init.general]/9.2", value_array_initialize_elements, value_zero_initialize_fallback)
 
-		YN_QUESTION_NODE(value_array_semantic_constraints, "Are the semantic constraints of value-initializing a hypothetical element met?", "[dcl.init.general]/9.2", value_array_initialize_elements, NEW_ILL_FORMED())
-		INSTRUCTION_NODE(value_array_initialize_elements, "Each element of the array is value-initialized.", "[dcl.init.general]/9.2")
+		INSTRUCTION_NODE(value_array_initialize_elements, "Value-initialize each element of the array.", "[dcl.init.general]/9.2")
 		-> NEW_DONE()
 
 		INTERNALLY_VALUE_INITS(value_array_initialize_elements)
@@ -41,8 +47,8 @@ subgraph cluster_value_initialization {
 
 	// 9.3
 	{
-		INSTRUCTION_NODE(value_zero_initialize_fallback, "The object is zero-initialized.", "[dcl.init.general]/9.3")
-		-> NEW_DONE()
+		INSTRUCTION_NODE(value_zero_initialize_fallback, "Zero-initialize the object.", "[dcl.init.general]/9.3")
+		-> NODE_ZERO_INIT_HEAD
 	}
 }
 

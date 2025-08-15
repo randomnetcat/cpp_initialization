@@ -5,6 +5,8 @@
 
 #define STRING_LITERAL_INIT_HEAD string_literal_initialization_head
 
+#include "zero_init.dot.cpp"
+
 subgraph cluster_string_literal_initialization {
 	INSTRUCTION_NODE(STRING_LITERAL_INIT_HEAD, "Initialization as follows:", "[dcl.init.string]")
 	-> INSTRUCTION_NODE(string_literal_verify_kind, "Verify array type and literal type match.")
@@ -33,6 +35,8 @@ subgraph cluster_string_literal_initialization {
 
 	INSTRUCTION_NODE(string_literal_initialize_rest, "Zero-initialize the remaining elements of the array (if any).")
 	-> NEW_DONE()
+
+	INTERNALLY_ZERO_INITS(string_literal_initialize_rest)
 }
 
 #endif

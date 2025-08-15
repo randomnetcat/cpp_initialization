@@ -66,7 +66,7 @@ digraph initialization {
 
     YN_QUESTION_NODE(is_dest_array, "Is the destination type an array?", "[dcl.init.general]/16.5", array_initialization_head, is_dest_class_type)
 
-    subgraph cluster_array_initialization {
+    subgraph array_initialization {
         INIT_AS_FOLLOWS(array_initialization_head, "[dcl.init.general]/16.5")
             array_initialization_head -> array_is_paren_expr_list
 
@@ -105,7 +105,7 @@ digraph initialization {
     INSTRUCTION_NODE(nullptr_to_bool_init, "Initialize the bool to false.", "[dcl.init.general]/16.8")
     -> NEW_DONE()
 
-    subgraph cluster_class_dest_initialization {
+    subgraph class_dest_initialization {
         INIT_AS_FOLLOWS(class_dest_initialization_head, "[dcl.init.general]/16.6")
 		-> class_is_initializer_prvalue
 
@@ -149,13 +149,11 @@ digraph initialization {
 
             YN_QUESTION_NODE_NO_CITE(class_aggregate_paren_is_k_gt_n, "Is k > n?", NEW_ILL_FORMED(), class_aggregate_paren_initialize_first_k)
 
-            INSTRUCTION_NODE(class_aggregate_paren_initialize_first_k, "For each 1 <= i <=k, copy-initialize e_i with x_i.")
+            INSTRUCTION_NODE(class_aggregate_paren_initialize_first_k, "For each 1 <= i <= k, copy-initialize e_i with x_i.")
 			-> INSTRUCTION_NODE(class_aggregate_paren_initialize_rest, "The remaining elements are initialized with their default member initializers, if any, and are otherwise value-initialized.")
 			-> NEW_DONE()
 
 			SOFT_REF_VALUE_INIT(class_aggregate_paren_initialize_rest)
-
-            ILL_FORMED_NODE(class_aggregate_paren_ill_formed)
         }
 
         subgraph class_user_defined_conv {
@@ -187,16 +185,17 @@ digraph initialization {
             string_literal_verify_kind -> { string_literal_kind_char, string_literal_kind_char8, string_literal_kind_char16, string_literal_kind_char32, string_literal_kind_wchar, string_literal_kind_other }
 
         {
-        rank=same;
-        string_literal_kind_char [label="char[] / ordinary literal"]
-        string_literal_kind_char8 [label="char8_t[] / UTF-8 literal"]
-        string_literal_kind_char16 [label="char16_t[] / UTF-16 literal"]
-        string_literal_kind_char32 [label="char32_t[] / UTF-32 literal"]
-        string_literal_kind_wchar [label="wchar_t[] / wide literal"]
-        string_literal_kind_other [label="Anything else"]
+            rank=same;
 
-        // Force these nodes to layout in the following order
-        string_literal_kind_char -> string_literal_kind_char8 -> string_literal_kind_char16 -> string_literal_kind_char32 -> string_literal_kind_wchar -> string_literal_kind_other [style=invis]
+            string_literal_kind_char [label="char[] / ordinary literal"]
+            string_literal_kind_char8 [label="char8_t[] / UTF-8 literal"]
+            string_literal_kind_char16 [label="char16_t[] / UTF-16 literal"]
+            string_literal_kind_char32 [label="char32_t[] / UTF-32 literal"]
+            string_literal_kind_wchar [label="wchar_t[] / wide literal"]
+            string_literal_kind_other [label="Anything else"]
+
+            // Force these nodes to layout in the following order
+            string_literal_kind_char -> string_literal_kind_char8 -> string_literal_kind_char16 -> string_literal_kind_char32 -> string_literal_kind_wchar -> string_literal_kind_other [style=invis]
         }
 
         LINK_TO_ILL_FORMED(string_literal_kind_other)
@@ -214,7 +213,7 @@ digraph initialization {
             LINK_TO_DONE(string_literal_initialize_rest)
     }
 
-    subgraph cluster_class_source_initialization {
+    subgraph class_source_initialization {
         INIT_AS_FOLLOWS(class_source_initialization_head, "[dcl.init.general]/16.7")
         -> INSTRUCTION_NODE(class_source_enumerate_conversion_functions, "Enumerate the applicable conversion functions (as in [over.match.conv]).")
         -> INSTRUCTION_NODE(class_source_overload_resolution, "Use overload resolution to select the best applicable conversion function.")
@@ -229,7 +228,7 @@ digraph initialization {
         -> NEW_DONE()
     }
 
-    subgraph cluster_standard_conv_seq_initialization {
+    subgraph standard_conv_seq_initialization {
         INIT_AS_FOLLOWS(standard_conv_seq_initialization_head, "[dcl.init.general]/16.9")
         -> INSTRUCTION_NODE(standard_conv_seq_do_init, "Initialize the object using the value of the initializer expression, using a standard conversion sequence if necessary, not considering any user-defined conversions.")
         -> standard_conv_seq_is_possible
@@ -243,115 +242,108 @@ digraph initialization {
     }
 
     subgraph cluster_reference_initialization {
+        // Header in paragraph 5.
         INSTRUCTION_NODE(reference_initialization_head, "Reference initialization", "[dcl.init.ref]")
-            reference_initialization_head -> reference_dest_type_defn
-        
-        INSTRUCTION_NODE(reference_dest_type_defn, "Let the destination type be \"reference to cv1 T1\".", "[dcl.init.ref]/5")
-            reference_dest_type_defn -> reference_source_type_defn
+        -> INSTRUCTION_NODE(reference_dest_type_defn, "Let the destination be a reference to type \"cv1 T1\".", "[dcl.init.ref]/5")
+        -> INSTRUCTION_NODE(reference_source_type_defn, "Let the initializer expression have type \"cv2 T2\".", "[dcl.init.ref]/5")
+        -> reference_is_dest_lval_for_step_1
 
-        INSTRUCTION_NODE(reference_source_type_defn, "Let the source type be \"cv2 T2\".", "[dcl.init.ref]/5")
-            reference_source_type_defn -> reference_is_dest_lval
+        // 5.1.
+        {
+            YN_QUESTION_NODE(reference_is_dest_lval_for_step_1, "Is the destination an lvalue reference?", "[dcl.init.ref]/5.1", reference_dest_lval_is_source_lval, reference_is_dest_lval_for_step_2)
 
-        YN_QUESTION_NODE(reference_is_dest_lval, "Is the destination type an lvalue reference?", "[dcl.init.ref]/5.1", reference_dest_lval_is_source_lval, reference_dest_is_lval_non_const)
+            // 5.1.1
+            {
+                YN_QUESTION_NODE(reference_dest_lval_is_source_lval, "Is the initializer expression an lvalue?", "[dcl.init.ref]/5.1.1", reference_dest_lval_is_source_lval_bitfield, reference_dest_lval_is_source_class)
+                YN_QUESTION_NODE(reference_dest_lval_is_source_lval_bitfield, "Is the initializer expression a bit-field?", "[dcl.init.ref]/5.1.1", reference_dest_lval_is_source_class, reference_lvals_is_compatible)
+                YN_QUESTION_NODE(reference_lvals_is_compatible, "Is cv1 T1 reference-compatible with cv2 T2?", "[dcl.init.ref]/5.1.1", reference_lvals_compatible_bind, reference_dest_lval_is_source_class)
 
-        YN_QUESTION_NODE(reference_dest_lval_is_source_lval, "Is the initializer an lvalue?", "[dcl.init.ref]/5.1", reference_lvals_is_compatible, reference_dest_lval_is_source_class)
+                INSTRUCTION_NODE(reference_lvals_compatible_bind, "The destination reference is bound to the initializer expression lvalue (or appropriate base).", "[dcl.init.ref]/5.1")
+                -> NEW_DONE()
+            }
 
-        YN_QUESTION_NODE(reference_lvals_is_compatible, "Is cv1 T1 reference-compatibile with cv2 T2?", "[dcl.init.ref]/5.1", reference_lvals_compatible_bind, reference_dest_lval_is_source_class)
+            // 5.1.2
+            {
+                YN_QUESTION_NODE(reference_dest_lval_is_source_class, "Is T2 a class type?", "[dcl.init.ref]/5.1.2", reference_dest_lval_source_class_is_reference_related, reference_is_dest_lval_for_step_2)
+                YN_QUESTION_NODE(reference_dest_lval_source_class_is_reference_related, "Is T1 reference-related to T2?", "[dcl.init.ref]/5.1.2", reference_is_dest_lval_for_step_2, reference_dest_lval_source_class_is_convertible)
+                YN_QUESTION_NODE(reference_dest_lval_source_class_is_convertible, "Is the initializer expression convertible to an lvalue of type \"cv3 T3\" such that cv1 T1 is reference-compatible with cv3 T3?", "[dcl.init.ref]/5.1.2", reference_class_enumerate_conversions, reference_is_dest_lval_for_step_2)
 
-        INSTRUCTION_NODE(reference_lvals_compatible_bind, "The destination reference is bound to the initializer lvalue (or appropriate base).", "[dcl.init.ref]/5.1")
-            LINK_TO_DONE(reference_lvals_compatible_bind)
+                INSTRUCTION_NODE(reference_class_enumerate_conversions, "Enumerate applicable conversion functions.", "[dcl.init.ref]/5.1.2")
+                -> INSTRUCTION_NODE(reference_class_select_conversion, "Select the best applicable conversion function.", "[dcl.init.ref]/5.1.2")
+                -> INSTRUCTION_NODE(reference_class_do_initialization, "The destination reference is bound to the lvalue result of the conversion (or appropriate base).", "[dcl.init.ref]/5.1")
+                -> NEW_DONE()
+            }
+        }
 
-        YN_QUESTION_NODE(reference_dest_lval_is_source_class, "Is T2 a class type?", "[dcl.init.ref]/5.1.2", reference_dest_lval_source_class_is_reference_related, reference_dest_is_lval_non_const)
+        // 5.2.
+        {
+            YN_QUESTION_NODE(reference_is_dest_lval_for_step_2, "Is the destination an lvalue reference?", "[dcl.init.ref]/5.2", reference_lval_dest_is_const, reference_rval_conv_source_is_rvalue)
+            YN_QUESTION_NODE(reference_lval_dest_is_const, "Is the destination a reference to a const-qualified type?", "[dcl.init.ref]/5.2", reference_dest_is_volatile, NEW_ILL_FORMED())
+            YN_QUESTION_NODE(reference_dest_is_volatile, "Is the destination a reference to a volatile-qualified type?", "[dcl.init.ref]/5.2", NEW_ILL_FORMED(), reference_rval_conv_source_is_rvalue)
+        }
 
-        YN_QUESTION_NODE(reference_dest_lval_source_class_is_reference_related, "Is T1 reference-related to T2?", "[dcl.init.ref]/5.1.2", reference_dest_is_lval_non_const, reference_dest_lval_source_class_is_convertible)
+        // 5.3.
+        {
+            // 5.3.1
+            {
+                YN_QUESTION_NODE(reference_rval_conv_source_is_rvalue, "Is the initializer an rvalue?", "[dcl.init.ref]/5.3.1", reference_rval_conv_source_is_rvalue_bitfield, reference_rval_conv_source_is_lval)
+                YN_QUESTION_NODE(reference_rval_conv_source_is_rvalue_bitfield, "Is the initializer a bit-field?", "[dcl.init.ref]/5.3.1", reference_rval_conv_source_is_lval, reference_rval_conv_source_rval_or_function_is_ref_compat)
 
-        YN_QUESTION_NODE(reference_dest_lval_source_class_is_convertible, "Is T2 convertible to an lvalue of type cv3 T3 such that cv1 T1 is reference-compatible with cv3 T3?", "[dcl.init.ref]/5.1.2", reference_class_select_conversion, reference_dest_is_lval_non_const)
+                YN_QUESTION_NODE(reference_rval_conv_source_is_lval, "Is the initializer an lvalue?", "[dcl.init.ref]/5.3.1", reference_rval_conv_source_lval_is_function, reference_rval_conv_source_is_class)
+                YN_QUESTION_NODE(reference_rval_conv_source_lval_is_function, "Is the initializer of function type?", "[dcl.init.ref]/5.3.1", reference_rval_conv_source_rval_or_function_is_ref_compat, reference_rval_conv_source_is_class)
 
-        INSTRUCTION_NODE(reference_class_select_conversion, "Select the best applicable conversion function.", "[dcl.init.ref]/5.1.2")
-            reference_class_select_conversion -> reference_class_do_initialization
+                YN_QUESTION_NODE(reference_rval_conv_source_rval_or_function_is_ref_compat, "Is cv1 T1 reference-compatible with cv2 T2?", "[dcl.init.ref]/5.3.1", reference_rval_conv_bind_direct, reference_rval_conv_source_is_class)
 
-        INSTRUCTION_NODE(reference_class_do_initialization, "The destination reference is bound to the result of the conversion (or appropriate base).", "[dcl.init.ref]/5.1")
-            LINK_TO_DONE(reference_class_do_initialization)
+                INSTRUCTION_NODE(reference_rval_conv_bind_direct, "The converted initializer is the value of the initializer.", "[dcl.init.ref]/5.3")
+                -> reference_rval_conv_is_converted_prval
+            }
 
-        YN_QUESTION_NODE(reference_dest_is_lval_non_const, "Is the destination an lvalue reference to a non-const type?", "[dcl.init.ref]/5.2", reference_dest_non_const_ill_formed, reference_dest_is_volatile)
+            // 5.3.2
+            {
+                YN_QUESTION_NODE(reference_rval_conv_source_is_class, "Is T2 a class type?", "[dcl.init.ref]/5.3.2", reference_rval_conv_source_class_is_ref_related, reference_temp_is_reference_related)
+                YN_QUESTION_NODE(reference_rval_conv_source_class_is_ref_related, "Is T1 reference-related to T2?", "[dcl.init.ref]/5.3.2", reference_temp_is_reference_related, reference_rval_conv_source_class_convertible_target)
+                YN_QUESTION_NODE(reference_rval_conv_source_class_convertible_target, "Is the initializer convertible to an rvalue or function lvalue of type \"cv3 T3\", where \"cv1 T1\" is reference-compatible with \"cv3 T3\"?", "[dcl.init.ref]/5.3.2", reference_rval_conv_bind_converted, reference_temp_is_reference_related)
 
-        ILL_FORMED_NODE(reference_dest_non_const_ill_formed)
+                INSTRUCTION_NODE(reference_rval_conv_bind_converted, "The converted initializer is the result of the conversion.", "[dcl.init.ref]/5.3")
+                -> reference_rval_conv_is_converted_prval
+            }
 
-        YN_QUESTION_NODE(reference_dest_is_volatile, "Is the destination's referenced type volatile-qualified", "[dcl.init.ref]/5.2", reference_dest_volatile_ill_formed, reference_rval_conv_source_is_rvalue)
+            YN_QUESTION_NODE(reference_rval_conv_is_converted_prval, "Is the converted initializer a prvalue?", "[dcl.init.ref]/5.3", reference_rval_conv_prval_t4_defn, reference_rval_conv_bind_glval)
 
-        ILL_FORMED_NODE(reference_dest_volatile_ill_formed)
+            INSTRUCTION_NODE(reference_rval_conv_prval_t4_defn, "Let the prvalue have type \"T4\".", "[dcl.init.ref]/5.3")
+            -> INSTRUCTION_NODE(reference_rval_conv_prval_materialize, "The prvalue is materialized, considering its type to be \"cv1 T4\".", "[dcl.init.ref]/5.3")
+            -> reference_rval_conv_bind_glval
+            
+            INSTRUCTION_NODE(reference_rval_conv_bind_glval, "The destination reference is bound to the resulting glvalue (or to an appropriate base class subobject).", "[dcl.init.ref]/5.3")
+            -> NEW_DONE()
+        }
 
-        YN_QUESTION_NODE(reference_rval_conv_source_is_rvalue, "Is the initializer an rvalue?", "[dcl.init.ref]/5.3.1", reference_rval_conv_source_is_rvalue_bitfield, reference_rval_conv_source_is_function_lval)
+        // 5.4
+        {
+            // 5.4.1
+            {
+                YN_QUESTION_NODE(reference_temp_is_reference_related, "Is T1 reference-related to T2?", "[dcl.init.ref]/5.4", NEW_ILL_FORMED(), reference_temp_is_dest_class)
 
-        YN_QUESTION_NODE(reference_rval_conv_source_is_rvalue_bitfield, "Is the initializer a bit-field?", "[dcl.init.ref]/5.3.1", reference_rval_conv_source_is_function_lval, reference_rval_conv_source_rval_or_function_is_ref_compat)
+                YN_QUESTION_NODE(reference_temp_is_dest_class, "Is T1 a class type?", "[dcl.init.ref]/5.4.1", reference_temp_user_defined_conv, reference_temp_is_source_class)
+                YN_QUESTION_NODE(reference_temp_is_source_class, "Is T2 a class type?", "[dcl.init.ref]/5.4.1", reference_temp_user_defined_conv, reference_temp_implicit_conv)
 
-        YN_QUESTION_NODE(reference_rval_conv_source_is_function_lval, "Is the initializer a function lvalue?", "[dcl.init.ref]/5.3.1", reference_rval_conv_source_rval_or_function_is_ref_compat, reference_rval_conv_source_is_class)
+                INSTRUCTION_NODE(reference_temp_user_defined_conv, "Consider user-defined conversions for the copy-initialization of an object of type \"cv1 T1\" by user-defined-conversion.", "[dcl.init.ref]/5.4.1")
+                -> reference_temp_user_defined_conv_is_ill_formed
 
-        YN_QUESTION_NODE(reference_rval_conv_source_rval_or_function_is_ref_compat, "Is cv1 T1 reference-compatible with cv2 T2?", "[dcl.init.ref]/5.3.1", reference_rval_conv_bind_direct, reference_rval_conv_source_is_class)
+                YN_QUESTION_NODE(reference_temp_user_defined_conv_is_ill_formed, "Would the non-reference copy-initialization be ill-formed?", "[dcl.init.ref]/5.4.1", NEW_ILL_FORMED(), reference_temp_user_defined_conv_direct_initialize)
 
-        YN_QUESTION_NODE(reference_rval_conv_source_is_class, "Is T2 a class type?", "[dcl.init.ref]/5.3.2", reference_rval_conv_source_class_is_ref_related, reference_temp_is_dest_class)
+                INSTRUCTION_NODE(reference_temp_user_defined_conv_direct_initialize, "Use the result \"E\" of the call to the conversion function, as described by non-reference copy-initialization, to direct-initialize the reference using the form \"(E)\". For this direct-initialization, user-defined conversions are not considered.", "[dcl.init.ref]/5.4.1")
+                -> NEW_DONE()
+            }
 
-        YN_QUESTION_NODE(reference_rval_conv_source_class_is_ref_related, "Is T1 reference-related to T2?", "[dcl.init.ref]/5.3.2", reference_temp_is_dest_class, reference_rval_conv_source_class_convertible_target)
-
-        YN_QUESTION_NODE(reference_rval_conv_source_class_convertible_target, "Is the initializer convertible to an rvalue or function lvalue of type \"cv3 T3\", where \"cv1 T1\" is reference-compatible with \"cv3 T3\"?", "[dcl.init.ref]/5.3.2", reference_rval_conv_bind_converted, reference_temp_is_dest_class)
-
-        INSTRUCTION_NODE(reference_rval_conv_bind_direct, "The converted initializer is the value of the initializer.", "[dcl.init.ref]/5.3")
-            reference_rval_conv_bind_direct -> reference_rval_conv_is_converted_prval
-
-        INSTRUCTION_NODE(reference_rval_conv_bind_converted, "The converted initializer is the result of the conversion.", "[dcl.init.ref]/5.3")
-            reference_rval_conv_bind_converted -> reference_rval_conv_is_converted_prval
-
-        YN_QUESTION_NODE(reference_rval_conv_is_converted_prval, "Is the converted initializer a prvalue?", "[dcl.init.ref]/5.3", reference_rval_conv_prval_adjust_type, reference_rval_conv_bind_glval)
-
-        INSTRUCTION_NODE(reference_rval_conv_prval_adjust_type, "Its type T4 is adjusted to \"cv1 T4\".", "[dcl.init.ref]/5.3")
-            reference_rval_conv_prval_adjust_type -> reference_rval_conv_prval_materialize
-
-        INSTRUCTION_NODE(reference_rval_conv_prval_materialize, "The prvalue is materialized.", "[dcl.init.ref]/5.3")
-            reference_rval_conv_prval_materialize -> reference_rval_conv_bind_glval
-
-        INSTRUCTION_NODE(reference_rval_conv_bind_glval, "The destination reference is bound to the resulting glvalue.", "[dcl.init.ref]/5.3")
-            LINK_TO_DONE(reference_rval_conv_bind_glval)
-
-        YN_QUESTION_NODE(reference_temp_is_dest_class, "Is T1 a class type?", "[dcl.init.ref]/5.4.1", reference_temp_is_related, reference_temp_is_source_class)
-
-        YN_QUESTION_NODE(reference_temp_is_source_class, "Is T2 a class type?", "[dcl.init.ref]/5.4.1", reference_temp_is_related, reference_temp_implicit_conv)
-
-        YN_QUESTION_NODE(reference_temp_is_related, "Is T1 reference-related to T2?", "[dcl.init.ref]/5.4.1", reference_temp_implicit_conv, reference_temp_user_defined_conv)
-
-        INSTRUCTION_NODE(reference_temp_user_defined_conv, "Consider user-defined conversions for the copy-initialization of an object of type \"cv1 T1\" by user-defined-conversion.", "[dcl.init.ref]/5.4.1")
-            reference_temp_user_defined_conv -> reference_temp_user_defined_conv_is_ill_formed
-
-        YN_QUESTION_NODE(reference_temp_user_defined_conv_is_ill_formed, "Would the non-reference copy-initialization be ill-formed?", "[dcl.init.ref]/5.4.1", reference_temp_user_defined_conv_ill_formed, reference_temp_user_defined_conv_direct_initialize)
-
-        ILL_FORMED_NODE(reference_temp_user_defined_conv_ill_formed)
-
-        INSTRUCTION_NODE(reference_temp_user_defined_conv_direct_initialize, "The result of the call to the conversion function, as described by non-reference copy-initialization, is used to direct-initialize the reference. For the direct-initialization, user-defined conversions are not considered.", "[dcl.init.ref]/5.4.1")
-            LINK_TO_DONE(reference_temp_user_defined_conv_direct_initialize)
-
-        INSTRUCTION_NODE(reference_temp_implicit_conv, "The initializer expression is implicitly converted to a prvalue of type \"cv1 T1\".", "[dcl.init.ref]/5.4.2")
-            reference_temp_implicit_conv -> reference_temp_implicit_conv_materialize
-
-        INSTRUCTION_NODE(reference_temp_implicit_conv_materialize, "The temporary is materialized.", "[dcl.init.ref]/5.4.2")
-            reference_temp_implicit_conv_materialize -> reference_temp_implicit_conv_materialize_bind
-
-        INSTRUCTION_NODE(reference_temp_implicit_conv_materialize_bind, "The reference is bound to the result.", "[dcl.init.ref]/5.4.2")
-            reference_temp_implicit_conv_materialize_bind -> reference_temp_implicit_conv_materialize_is_reference_related
-
-        QUESTION_NODE(reference_temp_implicit_conv_materialize_is_reference_related, "Is T1 reference-related to T2?", "[dcl.init.ref]/5.4")
-            reference_temp_implicit_conv_materialize_is_reference_related -> reference_temp_implicit_conv_materialize_is_cv_okay [label="Yes"]
-            LINK_TO_DONE(reference_temp_implicit_conv_materialize_is_reference_related, [label="No"])
-
-        YN_QUESTION_NODE(reference_temp_implicit_conv_materialize_is_cv_okay, "Is cv1 at least as qualified as cv2?", "[dcl.init.ref]/5.4.3", reference_temp_implicit_conv_materialize_is_dest_rval, reference_temp_implicit_conv_materialize_cv_ill_formed)
-
-        ILL_FORMED_NODE(reference_temp_implicit_conv_materialize_cv_ill_formed)
-
-        QUESTION_NODE(reference_temp_implicit_conv_materialize_is_dest_rval, "Is the destination an rvalue reference?", "[dcl.init.ref]/5.4.3")
-            reference_temp_implicit_conv_materialize_is_dest_rval -> reference_temp_implicit_conv_materialize_is_source_lval [label="Yes"]
-            LINK_TO_DONE(reference_temp_implicit_conv_materialize_is_dest_rval, [label="No"])
-
-        QUESTION_NODE(reference_temp_implicit_conv_materialize_is_source_lval, "Is the initializer an lvalue?", "[dcl.init.ref]/5.4.4")
-            LINK_TO_ILL_FORMED(reference_temp_implicit_conv_materialize_is_source_lval, [label="Yes"])
-            LINK_TO_DONE(reference_temp_implicit_conv_materialize_is_source_lval, [label="No"])
+            // 5.4.2
+            {
+                INSTRUCTION_NODE(reference_temp_implicit_conv, "The initializer expression is implicitly converted to a prvalue of type \"T1\".", "[dcl.init.ref]/5.4.2")
+                -> INSTRUCTION_NODE(reference_temp_implicit_conv_materialize, "The temporary is materialized, considering the type of the prvalue to be \"cv1 T1\".", "[dcl.init.ref]/5.4.2")
+                -> INSTRUCTION_NODE(reference_temp_implicit_conv_materialize_bind, "The reference is bound to the result.", "[dcl.init.ref]/5.4.2")
+                -> NEW_DONE()
+            }
+        }
     }
 
     subgraph cluster_value_initialization {

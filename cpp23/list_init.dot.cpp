@@ -17,7 +17,7 @@ subgraph list_initialization {
 	{
 		YN_QUESTION_NODE(list_has_designated_initializer, "Does the braced-init-list contain a designated-initializer-list?", "[dcl.init.list]/3.1", list_designated_initalizer_is_aggregate, list_is_aggregate_class)
 		YN_QUESTION_NODE(list_designated_initalizer_is_aggregate, "Is the type an aggregate class?", "[dcl.init.list]/3.1", list_designated_initializer_are_identifiers_valid, NEW_ILL_FORMED())
-		YN_QUESTION_NODE(list_designated_initializer_are_identifiers_valid, "Do the designators form a subsequence of the ordered idenitifiers in the direct non-static data members of the type?", "[dcl.init.list]/3.1", list_designated_initializer_aggregate_init, NEW_ILL_FORMED())
+		YN_QUESTION_NODE(list_designated_initializer_are_identifiers_valid, "Do the ordered identifiers in the designators of the designated-initializer-list form a subsequence of the ordered idenitifiers in the direct non-static data members of the type?", "[dcl.init.list]/3.1", list_designated_initializer_aggregate_init, NEW_ILL_FORMED())
 
 		INSTRUCTION_NODE(list_designated_initializer_aggregate_init, "Aggregate initialization is performed.", "[dcl.init.list]/3.1")
 		-> AGGREGATE_INIT_HEAD
@@ -58,7 +58,7 @@ subgraph list_initialization {
 
 	// 3.4
 	{
-		YN_QUESTION_NODE(list_is_aggregate, "Is the type an aggregate?", "[dcl.init.list]/3.4", list_aggregate_aggregate_initialization, list_is_list_empty)
+		YN_QUESTION_NODE(list_is_aggregate, "Is T an aggregate?", "[dcl.init.list]/3.4", list_aggregate_aggregate_initialization, list_is_list_empty)
 
 		INSTRUCTION_NODE(list_aggregate_aggregate_initialization, "Aggregate initialization is performed.", "[dcl.init.list]/3.4")
 		-> AGGREGATE_INIT_HEAD
@@ -68,14 +68,14 @@ subgraph list_initialization {
 	{
 		YN_QUESTION_NODE(list_is_list_empty, "Is the initializer list empty?", "[dcl.init.list]/3.5", list_empty_is_class, list_dest_is_initializer_list)
 		YN_QUESTION_NODE(list_empty_is_class, "Is T a class type?", "[dcl.init.list]/3.5", list_empty_has_default_constructor, list_dest_is_initializer_list)
-		YN_QUESTION_NODE(list_empty_has_default_constructor, "Does the class have a default constructor?", "[dcl.init.list]/3.5", list_empty_value_initialize, list_dest_is_initializer_list)
+		YN_QUESTION_NODE(list_empty_has_default_constructor, "Does T have a default constructor?", "[dcl.init.list]/3.5", list_empty_value_initialize, list_dest_is_initializer_list)
 
 		INST_VALUE_INIT(list_empty_value_initialize, "[dcl.init.list]/3.5")
 	}
 
 	// 3.6
 	{
-		YN_QUESTION_NODE(list_dest_is_initializer_list, "Is the type a specialization of std::initializer_list?", "[dcl.init.list]/3.6", list_initializer_list_init, list_is_class)
+		YN_QUESTION_NODE(list_dest_is_initializer_list, "Is T a specialization of std::initializer_list?", "[dcl.init.list]/3.6", list_initializer_list_init, list_is_class)
 
 		INIT_AS_FOLLOWS(list_initializer_list_init, "[dcl.init.list]/5")
 		-> INSTRUCTION_NODE(list_initializer_list_defn_e, "Let the object be of type std::initializer_list<E>.")
@@ -117,12 +117,12 @@ subgraph list_initialization {
 		-> list_enum_is_convertible
 
 		YN_QUESTION_NODE(list_enum_is_convertible, "Can v be implicitly converted to U?", "[dcl.init.list]/3.8", list_enum_is_direct, list_final_is_singleton)
-		YN_QUESTION_NODE(list_enum_is_direct, "Is the initialization direct-list-initialization?", "[dcl.init.list]/3.8", list_enum_is_narrowing, list_final_is_singleton)
+		YN_QUESTION_NODE(list_enum_is_direct, "Is the initialization direct-list-initialization?", "[dcl.init.list]/3.8", list_enum_initialization, list_final_is_singleton)
 
-		YN_QUESTION_NODE(list_enum_is_narrowing, "Is a narrowing conversion required to convert v to U?", "[dcl.init.list]/3.8", NEW_ILL_FORMED(), list_enum_initialization)
+		INSTRUCTION_NODE(list_enum_initialization, "The object is initialized with the value \"T(v)\" (an explicit type conversion).")
+		-> list_enum_is_narrowing
 
-		INSTRUCTION_NODE(list_enum_initialization, "The object is initialized with the value \"T(u)\" (an explicit type conversion).")
-		-> NEW_DONE()
+		YN_QUESTION_NODE(list_enum_is_narrowing, "Is a narrowing conversion required to convert v to U?", "[dcl.init.list]/3.8", NEW_ILL_FORMED(), NEW_DONE())
 	}
 
 	// 3.9

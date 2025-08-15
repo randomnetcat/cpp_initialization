@@ -88,7 +88,7 @@ digraph initialization {
 		INSTRUCTION_NODE(class_is_direct_init, "The initialization is direct-initialization.", "[dcl.init.general]/16.6.2")
 			class_is_direct_init -> class_consider_constructors
 
-		INSTRUCTION_NODE(class_consider_constructors, "Enumerate constructors and select the best through overload resolution.", "[dcl.init.general]/16.6.2")
+		INSTRUCTION_NODE(class_consider_constructors, "Enumerate applicable constructors and select the best through overload resolution.", "[dcl.init.general]/16.6.2")
 			class_consider_constructors -> class_constructors_is_resolution_successful
 
 		YN_QUESTION_NODE(class_constructors_is_resolution_successful, "Is overload resolution succesful?", "[dcl.init.general]/16.6.2.1", class_constructors_use_selected, class_is_constructor_viable)
@@ -119,13 +119,13 @@ digraph initialization {
 
 		subgraph class_user_defined_conv {
 			INIT_AS_FOLLOWS(class_user_defined_conv_head, "[dcl.init.general]/16.6.3")
-			-> INSTRUCTION_NODE(class_user_defined_conv_enumerate, "Enumerate the user-defined conversions that can convert from the source type to the destination type or (when a conversion function is used) to a derived class thereof (as described in [over.match.copy])")
+			-> INSTRUCTION_NODE(class_user_defined_conv_enumerate, "Enumerate the user-defined conversions that can convert from the source type to the destination type or (when a conversion function is used) to a derived class thereof (as described in [over.match.copy]).")
 			-> INSTRUCTION_NODE(class_user_defined_conv_overload_resolution, "Use overload resolution to select the best conversion.")
 			-> class_user_defined_conv_is_possible
 
 			YN_QUESTION_NODE_NO_CITE(class_user_defined_conv_is_possible, "Is the conversion ambiguous or impossible?", NEW_ILL_FORMED(), class_user_defined_conv_do_conversion)
 
-			INSTRUCTION_NODE(class_user_defined_conv_do_conversion, "Call the selected function with the initializer-expression as its argument.")
+			INSTRUCTION_NODE(class_user_defined_conv_do_conversion, "Call the selected function with the initializer expression as its argument.")
 			-> call_user_defined_conv_is_constructor
 
 			YN_QUESTION_NODE_NO_CITE(call_user_defined_conv_is_constructor, "Is the selected function a constructor?", call_user_defined_conv_constructor, class_user_defined_conv_initialize)

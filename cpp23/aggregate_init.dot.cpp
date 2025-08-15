@@ -89,13 +89,14 @@ subgraph cluster_aggregate_initialization {
 
 			INSTRUCTION_NODE(aggregate_initialize_explicit_copy_init_list, "Copy-initialize the element from the corresponding initializer-clause.", "[dcl.init.aggr]/4.2")
 			-> NEW_RECURSE_SUBOBJECT()
-			-> aggregate_initialize_explicit_is_narrowing_checked
+			-> aggregate_initialize_explicit_is_narrowing_checked_no_eq
 
 			INSTRUCTION_NODE(aggregate_initialize_explicit_copy_designated, "Initialize the element with the brace-or-equal-initializer of the corresponding designated-initializer-clause.", "[dcl.init.aggr]/4.2")
 			-> NEW_RECURSE_SUBOBJECT()
-			-> aggregate_initialize_explicit_is_narrowing_checked
+			-> aggregate_initialize_explicit_is_narrowing_checked_no_eq
 
-			YN_QUESTION_NODE(aggregate_initialize_explicit_is_narrowing_checked, "Is the initializer of the form \"assignment-expression\" or \"= assignment-expression\"?", "[dcl.init.aggr]/4.2", aggregate_initialize_explicit_is_narrowing, aggregate_initialize_explicit_repeat_next)
+			YN_QUESTION_NODE(aggregate_initialize_explicit_is_narrowing_checked_no_eq, "Is the initializer of the form \"assignment-expression\"?", "[dcl.init.aggr]/4.2", aggregate_initialize_explicit_is_narrowing, aggregate_initialize_explicit_is_narrowing_checked_eq)
+			YN_QUESTION_NODE(aggregate_initialize_explicit_is_narrowing_checked_eq, "Is the initializer of the form \"= assignment-expression\"?", "[dcl.init.aggr]/4.2", aggregate_initialize_explicit_is_narrowing, aggregate_initialize_explicit_repeat_next)
 			YN_QUESTION_NODE(aggregate_initialize_explicit_is_narrowing, "Is a narrowing conversion required to convert the expression?", "[dcl.init.aggr]/4.2", NEW_ILL_FORMED(), aggregate_initialize_explicit_repeat_next)
 		}
 

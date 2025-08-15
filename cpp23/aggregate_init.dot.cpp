@@ -77,7 +77,7 @@ subgraph cluster_aggregate_initialization {
 
 			INSTRUCTION_NODE(aggregate_initialization_explicit_union_defn_d, "Let D be the designated-initializer-clause naming a member of the anonymous union member.", "[dcl.init.aggr]/4.1")
 			-> INSTRUCTION_NODE(aggregate_initialize_explicit_union_init, "Initialize the element with the braced-init-list { D }.")
-			-> NEW_RECURSE()
+			-> NEW_RECURSE_SUBOBJECT()
 			-> aggregate_initialize_explicit_repeat_next
 		}
 
@@ -88,11 +88,11 @@ subgraph cluster_aggregate_initialization {
 				aggregate_initialize_explicit_copy_kind -> aggregate_initialize_explicit_copy_designated [label="designated-initializer-list"]
 
 			INSTRUCTION_NODE(aggregate_initialize_explicit_copy_init_list, "Copy-initialize the element from the corresponding initializer-clause.", "[dcl.init.aggr]/4.2")
-			-> NEW_RECURSE()
+			-> NEW_RECURSE_SUBOBJECT()
 			-> aggregate_initialize_explicit_is_narrowing_checked
 
 			INSTRUCTION_NODE(aggregate_initialize_explicit_copy_designated, "Initialize the element with the brace-or-equal-initializer of the corresponding designated-initializer-clause.", "[dcl.init.aggr]/4.2")
-			-> NEW_RECURSE()
+			-> NEW_RECURSE_SUBOBJECT()
 			-> aggregate_initialize_explicit_is_narrowing_checked
 
 			YN_QUESTION_NODE(aggregate_initialize_explicit_is_narrowing_checked, "Is the initializer of the form \"assignment-expression\" or \"= assignment-expression\"?", "[dcl.init.aggr]/4.2", aggregate_initialize_explicit_is_narrowing, aggregate_initialize_explicit_repeat_next)
@@ -117,7 +117,7 @@ subgraph cluster_aggregate_initialization {
 			YN_QUESTION_NODE(aggregate_initialize_nonexplicit_nonunion_has_dflt_mem_init, "Does the element have a default member initializer?", "[dcl.init.aggr]/5.1", aggregate_initialize_nonexplicit_nonunion_dflt_mem_init, aggregate_initialize_nonexplicit_nonunion_is_reference)
 
 			INSTRUCTION_NODE(aggregate_initialize_nonexplicit_nonunion_dflt_mem_init, "The element is initialized from that initializer.", "[dcl.init.aggr]/5.1")
-			-> NEW_RECURSE()
+			-> NEW_RECURSE_SUBOBJECT()
 			-> aggregate_initialize_nonexplicit_nonunion_repeat_next
 		}
 
@@ -126,7 +126,7 @@ subgraph cluster_aggregate_initialization {
 			YN_QUESTION_NODE(aggregate_initialize_nonexplicit_nonunion_is_reference, "Is the element a reference?", "[dcl.init.aggr]/5.2", NEW_ILL_FORMED(), aggregate_initialize_nonexplicit_nonunion_copy_init)
 
 			INSTRUCTION_NODE(aggregate_initialize_nonexplicit_nonunion_copy_init, "The element is copy-initialized from an empty initializer list.", "[dcl.init.aggr]/5.2")
-			-> NEW_RECURSE()
+			-> NEW_RECURSE_SUBOBJECT()
 			-> aggregate_initialize_nonexplicit_nonunion_repeat_next
 		}
 
@@ -144,14 +144,14 @@ subgraph cluster_aggregate_initialization {
 			YN_QUESTION_NODE(aggregate_initialize_nonexplicit_union_empty_has_dflt, "Does any variant member of the union have a default member initializer?", "[dcl.init.aggr]/5.4", aggregate_initialize_nonexplicit_union_dflt_mem, aggregate_initialize_nonexplicit_union_first_mem)
 
 			INSTRUCTION_NODE(aggregate_initialize_nonexplicit_union_dflt_mem, "That member is initialized from its default member initializer.", "[dcl.init.aggr]/5.4")
-			-> NEW_RECURSE()
+			-> NEW_RECURSE_SUBOBJECT()
 			-> NEW_DONE()
 		}
 
 		// 5.4
 		{
 			INSTRUCTION_NODE(aggregate_initialize_nonexplicit_union_first_mem, "The first member of the union (if any) is copy-initialized from an empty initializer list.", "[dcl.init.aggr]/5.5")
-			-> NEW_RECURSE()
+			-> NEW_RECURSE_SUBOBJECT()
 			-> NEW_DONE()
 		}
 	}

@@ -84,7 +84,7 @@ subgraph list_initialization {
 		-> INSTRUCTION_NODE(list_initializer_list_init_array, "Copy-initialize each element of the array with the corresponding element of the initializer list.")
 		-> list_initializer_list_is_narrowing
 
-		INTERNALLY_RECURSES(list_initializer_list_init_array)
+		INTERNALLY_RECURSES_SUBOBJECT(list_initializer_list_init_array)
 
 		YN_QUESTION_NODE_NO_CITE(list_initializer_list_is_narrowing, "Is a narrowing conversion required to initialize any of the elements?", NEW_ILL_FORMED(), list_initializer_list_init_object)
 
@@ -168,7 +168,7 @@ subgraph list_initialization {
 		-> list_ref_prvalue_init_prvalue
 
 		INSTRUCTION_NODE(list_ref_prvalue_init_prvalue, "The prvalue initializes its result object by copy-list-initialization.", "[dcl.init.list]/3.10")
-		-> NEW_RECURSE()
+		-> NEW_RECURSE_SUBOBJECT()
 		-> INSTRUCTION_NODE(list_ref_prvalue_init_ref, "The reference is direct-initialized by the prvalue.", "[dcl.init.list]/3.10")
 		-> NEW_RECURSE()
 	}

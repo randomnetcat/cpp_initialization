@@ -52,7 +52,7 @@ digraph initialization {
 		-> INSTRUCTION_NODE(array_value_init_n, "For each k < i <= n, value-initialize the i-th array element.")
 		-> NEW_DONE()
 
-		INTERNALLY_RECURSES(array_copy_init_k)
+		INTERNALLY_RECURSES_SUBOBJECT(array_copy_init_k)
 		INTERNALLY_VALUE_INITS(array_value_init_n)
 	}
 
@@ -113,7 +113,7 @@ digraph initialization {
 			-> INSTRUCTION_NODE(class_aggregate_paren_initialize_rest, "The remaining elements are initialized with their default member initializers, if any, and are otherwise value-initialized.")
 			-> NEW_DONE()
 
-			INTERNALLY_RECURSES(class_aggregate_paren_initialize_first_k)
+			INTERNALLY_RECURSES_SUBOBJECT(class_aggregate_paren_initialize_first_k)
 			INTERNALLY_VALUE_INITS(class_aggregate_paren_initialize_rest)
 		}
 

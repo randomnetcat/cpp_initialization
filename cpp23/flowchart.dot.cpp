@@ -1,11 +1,14 @@
 #define TOKEN_CAT_(X, Y) X##Y
 #define TOKEN_CAT(X, Y) TOKEN_CAT_(X, Y)
 
-#define DONE_NODE(id) { id [label="Done", style=filled, fillcolor=green, shape=box, color=green, fontcolor=white]; }
+#define DONE_NODE(id) { id [label="Done.", style=filled, fillcolor=green, shape=box, color=green, fontcolor=white]; }
 #define ILL_FORMED_NODE(id) { id [label="The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]; }
+#define RECURSE_NODE(id) { id [label="Recurse with the new initialization.", shape=box, style=filled, color=blue, fontcolor=white]}
 
-#define NEW_DONE() { DONE_NODE(TOKEN_CAT(__local_done_, __COUNTER__)); }
-#define NEW_ILL_FORMED() { ILL_FORMED_NODE(TOKEN_CAT(__local_ill_formed_, __COUNTER__)); }
+#define NEW_DONE() { DONE_NODE(TOKEN_CAT(__local_done_, __LINE__)); }
+#define NEW_ILL_FORMED() { ILL_FORMED_NODE(TOKEN_CAT(__local_ill_formed_, __LINE__)); }
+#define NEW_RECURSE() { RECURSE_NODE(TOKEN_CAT(__local_recurse, __LINE__)); }
+#define INTERNALLY_RECURSES(id) { id -> { RECURSE_NODE(TOKEN_CAT(id, __recurse)); } [style="dotted"]; }
 
 // Arguments: name of source node, optional edge attrs.
 #define LINK_TO_DONE(id, ...) { id -> { DONE_NODE(TOKEN_CAT(id, __generated_done)); } __VA_ARGS__; }
@@ -31,11 +34,11 @@
 
 #define VALUE_INIT_TARGET value_initialization_head
 #define INST_VALUE_INIT(id, ...) { INSTRUCTION_NODE(id, "The object is value-initialized.", __VA_ARGS__); } -> VALUE_INIT_TARGET
-#define SOFT_REF_VALUE_INIT(id) { id -> VALUE_INIT_TARGET [style="dotted"]; }
+#define INTERNALLY_VALUE_INITS(id) { id -> VALUE_INIT_TARGET [style="dotted"]; }
 
 #define INIT_AS_FOLLOWS(id, ...) { INSTRUCTION_NODE(id, "The object is initialized as follows:", __VA_ARGS__); }
 
-#define LOOP_BACKEDGE(source, loop_header) { source -> loop_header [style="dashed", constraint="false"]; }
+#define LOOP_BACKEDGE(source, loop_header) { source -> loop_header [style="dashed", constraint="true"]; }
 
 digraph initialization {
 	compound="true";
@@ -85,11 +88,12 @@ digraph initialization {
 
 		YN_QUESTION_NODE_NO_CITE(array_is_k_gt_n, "Is k > n?", NEW_ILL_FORMED(), array_copy_init_k)
 
-		INSTRUCTION_NODE(array_copy_init_k, "For each 1 <= i <= k, copy-initialized the i-th array element with x_i.")
+		INSTRUCTION_NODE(array_copy_init_k, "For each 1 <= i <= k, copy-initialize the i-th array element with x_i.")
 		-> INSTRUCTION_NODE(array_value_init_n, "For each k < i <= n, value-initialize the i-th array element.")
 		-> NEW_DONE()
 
-		SOFT_REF_VALUE_INIT(array_value_init_n)
+        INTERNALLY_RECURSES(array_copy_init_k)
+		INTERNALLY_VALUE_INITS(array_value_init_n)
     }
 
     YN_QUESTION_NODE(is_dest_class_type, "Is the destination type a (possibly cv-qualified) class type?", "[dcl.init.general]/16.6", class_dest_initialization_head, is_source_class_type)
@@ -132,13 +136,9 @@ digraph initialization {
         INSTRUCTION_NODE(class_constructors_use_selected, "Call the selected constructor to initialize the object with the initializer expression or expression-list as its argument(s).", "[dcl.init.general]/16.6.2.1")
 		-> NEW_DONE()
 
-		YN_QUESTION_NODE(class_is_constructor_viable, "Is a constructor viable?", "[dcl.init.general]/16.6.2.2", class_ill_formed, class_is_aggregate) 
-
-        YN_QUESTION_NODE(class_is_aggregate, "Is the destination type an aggregate class?", "[dcl.init.general]/16.6.2.2", class_aggregate_is_initializer_expr_list, class_ill_formed)
-
-        YN_QUESTION_NODE(class_aggregate_is_initializer_expr_list, "Is the initializer a parenthesized expression-list?", "[dcl.init.general]/16.6.2.2", class_aggregate_paren_init_head, class_ill_formed)
-
-        ILL_FORMED_NODE(class_ill_formed)
+		YN_QUESTION_NODE(class_is_constructor_viable, "Is a constructor viable?", "[dcl.init.general]/16.6.2.2", NEW_ILL_FORMED(), class_is_aggregate) 
+        YN_QUESTION_NODE(class_is_aggregate, "Is the destination type an aggregate class?", "[dcl.init.general]/16.6.2.2", class_aggregate_is_initializer_expr_list, NEW_ILL_FORMED())
+        YN_QUESTION_NODE(class_aggregate_is_initializer_expr_list, "Is the initializer a parenthesized expression-list?", "[dcl.init.general]/16.6.2.2", class_aggregate_paren_init_head, NEW_ILL_FORMED())
 
         subgraph class_aggregate_paren_init {
             INIT_AS_FOLLOWS(class_aggregate_paren_init_head, "[dcl.init.general]/16.6.2.2")
@@ -153,7 +153,8 @@ digraph initialization {
 			-> INSTRUCTION_NODE(class_aggregate_paren_initialize_rest, "The remaining elements are initialized with their default member initializers, if any, and are otherwise value-initialized.")
 			-> NEW_DONE()
 
-			SOFT_REF_VALUE_INIT(class_aggregate_paren_initialize_rest)
+            INTERNALLY_RECURSES(class_aggregate_paren_initialize_first_k)
+			INTERNALLY_VALUE_INITS(class_aggregate_paren_initialize_rest)
         }
 
         subgraph class_user_defined_conv {
@@ -172,8 +173,8 @@ digraph initialization {
             INSTRUCTION_NODE(call_user_defined_conv_constructor, "The call is a prvalue of the cv-unqualified version of the destination type whose result object is initialized by the constructor.")
             call_user_defined_conv_constructor -> class_user_defined_conv_initialize
 
-            INSTRUCTION_NODE(class_user_defined_conv_initialize, "Direct-initialize the destination object using the call..")
-            -> NEW_DONE()
+            INSTRUCTION_NODE(class_user_defined_conv_initialize, "Direct-initialize the destination object using the call.")
+            -> NEW_RECURSE()
         }
     }
 
@@ -203,7 +204,7 @@ digraph initialization {
         { string_literal_kind_char, string_literal_kind_char8, string_literal_kind_char16, string_literal_kind_char32, string_literal_kind_wchar } -> string_literal_initialize_first
 
         INSTRUCTION_NODE(string_literal_initialize_first, "Initialize the first elements of the array with successive values from the string literal.")
-            string_literal_initialize_first -> string_literal_has_too_many
+        -> string_literal_has_too_many
 
         YN_QUESTION_NODE_NO_CITE(string_literal_has_too_many, "Are there more initializers than array elements?", string_literal_ill_formed_too_many, string_literal_initialize_rest)
 
@@ -248,7 +249,7 @@ digraph initialization {
         -> INSTRUCTION_NODE(reference_source_type_defn, "Let the initializer expression have type \"cv2 T2\".", "[dcl.init.ref]/5")
         -> reference_is_dest_lval_for_step_1
 
-        // 5.1.
+        // 5.1
         {
             YN_QUESTION_NODE(reference_is_dest_lval_for_step_1, "Is the destination an lvalue reference?", "[dcl.init.ref]/5.1", reference_dest_lval_is_source_lval, reference_is_dest_lval_for_step_2)
 
@@ -275,14 +276,14 @@ digraph initialization {
             }
         }
 
-        // 5.2.
+        // 5.2
         {
             YN_QUESTION_NODE(reference_is_dest_lval_for_step_2, "Is the destination an lvalue reference?", "[dcl.init.ref]/5.2", reference_lval_dest_is_const, reference_rval_conv_source_is_rvalue)
             YN_QUESTION_NODE(reference_lval_dest_is_const, "Is the destination a reference to a const-qualified type?", "[dcl.init.ref]/5.2", reference_dest_is_volatile, NEW_ILL_FORMED())
             YN_QUESTION_NODE(reference_dest_is_volatile, "Is the destination a reference to a volatile-qualified type?", "[dcl.init.ref]/5.2", NEW_ILL_FORMED(), reference_rval_conv_source_is_rvalue)
         }
 
-        // 5.3.
+        // 5.3
         {
             // 5.3.1
             {
@@ -333,7 +334,7 @@ digraph initialization {
                 YN_QUESTION_NODE(reference_temp_user_defined_conv_is_ill_formed, "Would the non-reference copy-initialization be ill-formed?", "[dcl.init.ref]/5.4.1", NEW_ILL_FORMED(), reference_temp_user_defined_conv_direct_initialize)
 
                 INSTRUCTION_NODE(reference_temp_user_defined_conv_direct_initialize, "Use the result \"E\" of the call to the conversion function, as described by non-reference copy-initialization, to direct-initialize the reference using the form \"(E)\". For this direct-initialization, user-defined conversions are not considered.", "[dcl.init.ref]/5.4.1")
-                -> NEW_DONE()
+                -> NEW_RECURSE()
             }
 
             // 5.4.2
@@ -346,308 +347,372 @@ digraph initialization {
         }
     }
 
+    // [dcl.init.general]/9
     subgraph cluster_value_initialization {
         INSTRUCTION_NODE(value_initialization_head, "Value-initialization", "[dcl.init.general]/9")
             value_initialization_head -> value_is_class
 
-        YN_QUESTION_NODE(value_is_class, "Is the type a (possibly cv-qualified) class type?", "[dcl.init.general]/9.1", value_class_find_dflt_ctor, value_is_array)
+        // 9.1
+        {
+            YN_QUESTION_NODE(value_is_class, "Is the type a (possibly cv-qualified) class type?", "[dcl.init.general]/9.1", value_class_find_dflt_ctor, value_is_array)
 
-        INSTRUCTION_NODE(value_class_find_dflt_ctor, "Let C be the constructor selected to default-initialize the object, if any.", "[dcl.init.general]/9.1")
-        -> value_class_dflt_ctor_is_user_provided
+            INSTRUCTION_NODE(value_class_find_dflt_ctor, "Let C be the constructor selected to default-initialize the object, if any.", "[dcl.init.general]/9.1")
+            -> value_class_dflt_ctor_is_user_provided
 
-        YN_QUESTION_NODE(value_class_dflt_ctor_is_user_provided, "Is C user-provided?", "[dcl.init.general]/9.1", value_class_dflt_ctor_zero_init, value_class_default_initialize)
-        
-        INSTRUCTION_NODE(value_class_dflt_ctor_zero_init, "The object is zero-initialized.", "[dcl.init.general]/9.1")
-        -> value_class_default_initialize
+            YN_QUESTION_NODE(value_class_dflt_ctor_is_user_provided, "Is C user-provided?", "[dcl.init.general]/9.1", value_class_dflt_ctor_zero_init, value_class_default_initialize)
+            
+            INSTRUCTION_NODE(value_class_dflt_ctor_zero_init, "The object is zero-initialized.", "[dcl.init.general]/9.1")
+            -> value_class_default_initialize
 
-        INSTRUCTION_NODE(value_class_default_initialize, "The object is default-initialized.", "[dcl.init.general]/9.1")
-        -> NEW_DONE()
+            INSTRUCTION_NODE(value_class_default_initialize, "The object is default-initialized.", "[dcl.init.general]/9.1")
+            -> NEW_DONE()
+        }
 
-        YN_QUESTION_NODE(value_is_array, "Is the type an array type?", "[dcl.init.general]/9.2", value_array_semantic_constraints, value_zero_initialize_fallback)
+        // 9.3
+        {
+            YN_QUESTION_NODE(value_is_array, "Is the type an array type?", "[dcl.init.general]/9.2", value_array_semantic_constraints, value_zero_initialize_fallback)
 
-        YN_QUESTION_NODE(value_array_semantic_constraints, "Are the semantic constraints of value-initializing a hypothetical element met?", "[dcl.init.general]/9.2", value_array_initialize_elements, NEW_ILL_FORMED())
-        INSTRUCTION_NODE(value_array_initialize_elements, "Each element of the array is value-initialized.", "[dcl.init.general]/9.2")
+            YN_QUESTION_NODE(value_array_semantic_constraints, "Are the semantic constraints of value-initializing a hypothetical element met?", "[dcl.init.general]/9.2", value_array_initialize_elements, NEW_ILL_FORMED())
+            INSTRUCTION_NODE(value_array_initialize_elements, "Each element of the array is value-initialized.", "[dcl.init.general]/9.2")
+            -> NEW_DONE()
 
-        INSTRUCTION_NODE(value_zero_initialize_fallback, "The object is zero-initialized.", "[dcl.init.general]/9.3")
-        -> NEW_DONE()
+            INTERNALLY_VALUE_INITS(value_array_initialize_elements)
+        }
+
+        // 9.3
+        {
+            INSTRUCTION_NODE(value_zero_initialize_fallback, "The object is zero-initialized.", "[dcl.init.general]/9.3")
+            -> NEW_DONE()
+        }
     }
 
+    // [dcl.init.list]/3
     subgraph list_initialization {
         INSTRUCTION_NODE(list_initialization_head, "List-initialization", "[dcl.init.list]/3")
-            list_initialization_head -> list_has_designated_initializer
+        -> INSTRUCTION_NODE(list_initialization_defn_t, "Let the initialized object or reference be of type T.", "[dcl.init.list]/3")
+        -> list_has_designated_initializer
 
-        YN_QUESTION_NODE(list_has_designated_initializer, "Does the braced-init-list contain a designated-initializer-list?", "[dcl.init.list]/3.1", list_designated_initalizer_is_aggregate, list_is_aggregate_class)
+        // 3.1
+        {
+            YN_QUESTION_NODE(list_has_designated_initializer, "Does the braced-init-list contain a designated-initializer-list?", "[dcl.init.list]/3.1", list_designated_initalizer_is_aggregate, list_is_aggregate_class)
+            YN_QUESTION_NODE(list_designated_initalizer_is_aggregate, "Is the type an aggregate class?", "[dcl.init.list]/3.1", list_designated_initializer_are_identifiers_valid, NEW_ILL_FORMED())
+            YN_QUESTION_NODE(list_designated_initializer_are_identifiers_valid, "Do the designators form a subsequence of the ordered idenitifiers in the direct non-static data members of the type?", "[dcl.init.list]/3.1", list_designated_initializer_aggregate_init, NEW_ILL_FORMED())
 
-        YN_QUESTION_NODE(list_designated_initalizer_is_aggregate, "Is the type an aggregate class?", "[dcl.init.list]/3.1", list_designated_initializer_are_identifiers_valid, list_designated_initalizer_nonaggregate_ill_formed)
+            INSTRUCTION_NODE(list_designated_initializer_aggregate_init, "Aggregate initialization is performed.", "[dcl.init.list]/3.1")
+            -> aggregate_initialization_head
+        }
 
-        ILL_FORMED_NODE(list_designated_initalizer_nonaggregate_ill_formed)
+        // 3.2
+        {
+            YN_QUESTION_NODE(list_is_aggregate_class, "Is the type an aggregate class?", "[dcl.init.list]/3.2", list_aggregate_is_list_singleton, list_is_type_char_array)
 
-        YN_QUESTION_NODE(list_designated_initializer_are_identifiers_valid, "Do the designators form a subsequence of the ordered idenitifiers in the direct non-static data members of the type?", "[dcl.init.list]/3.1", list_designated_initializer_aggregate_init, list_designated_initalizer_initializers_ill_formed)
+            YN_QUESTION_NODE(list_aggregate_is_list_singleton, "Does the initializer list have a single element?", "[dcl.init.list]/3.2", list_aggregate_defn_u, list_is_type_char_array)
 
-        ILL_FORMED_NODE(list_designated_initalizer_initializers_ill_formed)
+            INSTRUCTION_NODE(list_aggregate_defn_u, "Let the sole element have type \"cv U\".")
+            -> list_aggregate_is_u_eq_t
 
-        INSTRUCTION_NODE(list_designated_initializer_aggregate_init, "Aggregate initialization is performed.", "[dcl.init.list]/3.1")
-        list_designated_initializer_aggregate_init -> aggregate_initialization_head
+            YN_QUESTION_NODE(list_aggregate_is_u_eq_t, "Is U the same as T?", "[dcl.init.list]/3.2", list_aggregate_singleton_type_init_type, list_aggreagte_is_u_derived_t)
+            YN_QUESTION_NODE(list_aggreagte_is_u_derived_t, "Is U a class derived from T?", "[dcl.init.list]/3.2", list_aggregate_singleton_type_init_type, list_is_type_char_array)
 
-        YN_QUESTION_NODE(list_is_aggregate_class, "Is the type an aggregate class?", "[dcl.init.list]/3.2", list_aggregate_is_list_singleton, list_is_type_char_array)
+            QUESTION_NODE(list_aggregate_singleton_type_init_type, "What is the type of initialization?", "[dcl.init.list]/3.2")
+                list_aggregate_singleton_type_init_type -> list_aggregate_singleton_type_copy [label="copy-list-initialization"]
+                list_aggregate_singleton_type_init_type -> list_aggregate_singleton_type_direct [label="direct-list-initialization"]
 
-        YN_QUESTION_NODE(list_aggregate_is_list_singleton, "Does the initializer list have a single element?", "[dcl.init.list]/3.2", list_aggregate_singleton_is_type_valid, list_is_type_char_array)
+            INSTRUCTION_NODE(list_aggregate_singleton_type_copy, "Copy-initialize the object from the sole element.", "[dcl.init.list]/3.2")
+            -> NEW_RECURSE()
 
-        YN_QUESTION_NODE(list_aggregate_singleton_is_type_valid, "Does the sole element have type \"cv U\", where U is the initialized type or a type derived of it?", "[dcl.init.list]/3.2", list_aggregate_singleton_type_init_type, list_is_type_char_array)
+            INSTRUCTION_NODE(list_aggregate_singleton_type_direct, "Direct-initialize the object from the sole element.", "[dcl.init.list]/3.2")
+            -> NEW_RECURSE()
+        }
 
-        QUESTION_NODE(list_aggregate_singleton_type_init_type, "What is the type of initialization?", "[dcl.init.list]/3.2")
-            list_aggregate_singleton_type_init_type -> list_aggregate_singleton_type_copy [label="copy-list-initialization"]
-            list_aggregate_singleton_type_init_type -> list_aggregate_singleton_type_direct [label="direct-list-initialization"]
+        // 3.3
+        {
+            YN_QUESTION_NODE(list_is_type_char_array, "Is T a character array?", "[dcl.init.list]/3.3", list_char_array_is_singleton, list_is_aggregate)
+            YN_QUESTION_NODE(list_char_array_is_singleton, "Does the iniitializer list have a single element?", "[dcl.init.list/]3.3", list_char_array_singleton_is_typed, list_is_aggregate)
+            YN_QUESTION_NODE(list_char_array_singleton_is_typed, "Is that element an appropriately-typed string-literal?", "[dcl.init.list]/3.3", list_char_array_string_literal_init, list_is_aggregate)
 
-        INSTRUCTION_NODE(list_aggregate_singleton_type_copy, "The object is copy-initialized from the sole element.", "[dcl.init.list]/3.2")
-            LINK_TO_DONE(list_aggregate_singleton_type_copy)
+            INSTRUCTION_NODE(list_char_array_string_literal_init, "Initialization as in [dcl.init.string]", "[dcl.init.list]/3.3")
+            -> string_literal_initialization_head
+        }
 
-        INSTRUCTION_NODE(list_aggregate_singleton_type_direct, "The object is direct-initialized from the sole element.", "[dcl.init.list]/3.2")
-            LINK_TO_DONE(list_aggregate_singleton_type_direct)
+        // 3.4
+        {
+            YN_QUESTION_NODE(list_is_aggregate, "Is the type an aggregate?", "[dcl.init.list]/3.4", list_aggregate_aggregate_initialization, list_is_list_empty)
 
-        YN_QUESTION_NODE(list_is_type_char_array, "Is the type a character array?", "[dcl.init.list]/3.3", list_char_array_is_singleton, list_is_aggregate)
+            INSTRUCTION_NODE(list_aggregate_aggregate_initialization, "Aggregate initialization is performed.", "[dcl.init.list]/3.4")
+            -> aggregate_initialization_head
+        }
 
-        YN_QUESTION_NODE(list_char_array_is_singleton, "Does the iniitializer list have a single element?", "[dcl.init.list/]3.3", list_char_array_singleton_is_typed, list_is_aggregate)
+        // 3.5
+        {
+            YN_QUESTION_NODE(list_is_list_empty, "Is the initializer list empty?", "[dcl.init.list]/3.5", list_empty_is_class, list_dest_is_initializer_list)
+            YN_QUESTION_NODE(list_empty_is_class, "Is T a class type?", "[dcl.init.list]/3.5", list_empty_has_default_constructor, list_dest_is_initializer_list)
+            YN_QUESTION_NODE(list_empty_has_default_constructor, "Does the class have a default constructor?", "[dcl.init.list]/3.5", list_empty_value_initialize, list_dest_is_initializer_list)
 
-        YN_QUESTION_NODE(list_char_array_singleton_is_typed, "Is that element an appropriately-typed string-literal?", "[dcl.init.list]/3.3", list_char_array_string_literal_init, list_is_aggregate)
+            INST_VALUE_INIT(list_empty_value_initialize, "[dcl.init.list]/3.5")
+        }
 
-        INSTRUCTION_NODE(list_char_array_string_literal_init, "Initialization as in [dcl.init.string]", "[dcl.init.list]/3.3")
-            list_char_array_string_literal_init -> string_literal_initialization_head
+        // 3.6
+        {
+            YN_QUESTION_NODE(list_dest_is_initializer_list, "Is the type a specialization of std::initializer_list?", "[dcl.init.list]/3.6", list_initializer_list_init, list_is_class)
 
-        YN_QUESTION_NODE(list_is_aggregate, "Is the type an aggregate?", "[dcl.init.list]/3.4", list_aggregate_aggregate_initialization, list_is_list_empty)
+            INIT_AS_FOLLOWS(list_initializer_list_init, "[dcl.init.list]/5")
+            -> INSTRUCTION_NODE(list_initializer_list_defn_e, "Let the object be of type std::initializer_list<E>.")
+            -> INSTRUCTION_NODE(list_initializer_list_defn_n, "Let N be the number of elements in the initalizer list.")
+            -> INSTRUCTION_NODE(list_initializer_list_materialize_array, "Materialize a prvalue of type \"array of N const E\".")
+            -> INSTRUCTION_NODE(list_initializer_list_init_array, "Copy-initialize each element of the array with the corresponding element of the initializer list.")
+            -> list_initializer_list_is_narrowing
 
-        INSTRUCTION_NODE(list_aggregate_aggregate_initialization, "Aggregate initialization is performed.", "[dcl.init.list]/3.4")
-            list_aggregate_aggregate_initialization -> aggregate_initialization_head
+            INTERNALLY_RECURSES(list_initializer_list_init_array)
 
-        YN_QUESTION_NODE(list_is_list_empty, "Is the initializer list empty?", "[dcl.init.list]/3.5", list_empty_is_class, list_dest_is_initializer_list)
+            YN_QUESTION_NODE_NO_CITE(list_initializer_list_is_narrowing, "Is a narrowing conversion required to initialize any of the elements?", NEW_ILL_FORMED(), list_initializer_list_init_object)
 
-        YN_QUESTION_NODE(list_empty_is_class, "Is the destination type a class type?", "[dcl.init.list]/3.5", list_empty_has_default_constructor, list_dest_is_initializer_list)
+            INSTRUCTION_NODE(list_initializer_list_init_object, "The initializer_list is constructed to refer to the materialized array.")
+            -> NEW_DONE()
+        }
 
-        YN_QUESTION_NODE(list_empty_has_default_constructor, "Does the class have a default constructor?", "[dcl.init.list]/3.5", list_empty_value_initialize, list_dest_is_initializer_list)
+        // 3.7
+        {
+            YN_QUESTION_NODE(list_is_class, "Is T a class type?", "[dcl.init.list]/3.7", list_class_enumerate_ctors, list_is_enum)
 
-        INSTRUCTION_NODE(list_empty_value_initialize, "The object is value-initialized.", "[dcl.init.list]/3.5")
-            LINK_TO_DONE(list_empty_value_initialize)
+            INSTRUCTION_NODE(list_class_enumerate_ctors, "Enumerate the applicable constructors.", "[dcl.init.list]/3.7")
+            -> INSTRUCTION_NODE(list_class_select_ctor, "Select the best match is selected through overload resolution (applying the special rules in [over.match.list]).", "[dcl.init.list]/3.7")
+            -> list_class_is_narrowing
 
-        YN_QUESTION_NODE(list_dest_is_initializer_list, "Is the type a specialization of std::initializer_list?", "[dcl.init.list]/3.6", list_initializer_list_init, list_is_class)
+            YN_QUESTION_NODE(list_class_is_narrowing, "Is a narrowing conversion required to convert any of the arguments?", "[dcl.init.list]/3.7", NEW_ILL_FORMED(), NEW_DONE())
+        }
 
-        INSTRUCTION_NODE(list_initializer_list_init, "Initialized as follows:", "[dcl.init.list]/5")
-            list_initializer_list_init -> list_initializer_list_n_defn
+        // 3.8
+        {
+            YN_QUESTION_NODE(list_is_enum, "Is T an enumeration?", "[dcl.init.list]/3.8", list_enum_is_fixed, list_final_is_singleton)
+            YN_QUESTION_NODE(list_enum_is_fixed, "Does T have fixed underlying type?", "[dcl.init.list]/3.8", list_enum_underlying_defn, list_final_is_singleton)
 
-        INSTRUCTION_NODE(list_initializer_list_n_defn, "Let N be the number of elements in the initalizer list.")
-            list_initializer_list_n_defn -> list_initializer_list_materialize_array
+            INSTRUCTION_NODE(list_enum_underlying_defn, "Let U be the underlying type.", "[dcl.init.list]/3.8")
+            -> list_enum_is_singleton
 
-        INSTRUCTION_NODE(list_initializer_list_materialize_array, "Where type is std::initializer_list<E>, a prvalue of type \"array of N const E\" is materialized.")
-            list_initializer_list_materialize_array -> list_initializer_list_init_array
+            YN_QUESTION_NODE(list_enum_is_singleton, "Does the initializer-list have a single element?", "[dcl.init.list]/3.8", list_enum_elem_defn, list_final_is_singleton)
 
-        INSTRUCTION_NODE(list_initializer_list_init_array, "Each element of the array is copy-initialized with the corresponding element of the initializer list.")
-            list_initializer_list_init_array -> list_initializer_list_is_narrowing
+            INSTRUCTION_NODE(list_enum_elem_defn, "Let v be that element.", "[dcl.init.list]/3.8")
+            -> list_enum_is_convertible
 
-        YN_QUESTION_NODE_NO_CITE(list_initializer_list_is_narrowing, "Is a narrowing conversion required to initialize any of the elements?", list_initializer_list_narrowing_ill_formed, list_initializer_list_init_object)
+            YN_QUESTION_NODE(list_enum_is_convertible, "Can v be implicitly converted to U?", "[dcl.init.list]/3.8", list_enum_is_direct, list_final_is_singleton)
+            YN_QUESTION_NODE(list_enum_is_direct, "Is the initialization direct-list-initialization?", "[dcl.init.list]/3.8", list_enum_is_narrowing, list_final_is_singleton)
 
-        ILL_FORMED_NODE(list_initializer_list_narrowing_ill_formed)
+            YN_QUESTION_NODE(list_enum_is_narrowing, "Is a narrowing conversion required to convert v to U?", "[dcl.init.list]/3.8", NEW_ILL_FORMED(), list_enum_initialization)
 
-        INSTRUCTION_NODE(list_initializer_list_init_object, "The initializer_list is constructed to refer to the materialized array.")
-            LINK_TO_DONE(list_initializer_list_init_object)
+            INSTRUCTION_NODE(list_enum_initialization, "The object is initialized with the value \"T(u)\" (an explicit type conversion).")
+            -> NEW_DONE()
+        }
 
-        YN_QUESTION_NODE(list_is_class, "Is the type a class type?", "[dcl.init.list]/3.7", list_class_ctors, list_is_enum)
+        // 3.9
+        {
+            // Final just because I couldn't come up with a better name for it. "Final" as in "last".
+            
+            YN_QUESTION_NODE(list_final_is_singleton, "Does the initializer list have a single element?", "[dcl.init.list]/3.9", list_final_singleton_type_defn, list_ref_prvalue_is_ref)
 
-        INSTRUCTION_NODE(list_class_ctors, "Constructors are considered, and the best match is selected through overload resolution.", "[dcl.init.list]/3.7")
-            list_class_ctors -> list_class_is_narrowing
+            INSTRUCTION_NODE(list_final_singleton_type_defn, "Let E be the type of that element.", "[dcl.init.list]/3.9")
+            -> list_final_singleton_is_dest_ref
 
-        QUESTION_NODE(list_class_is_narrowing, "Is a narrowing conversion required to convert any of the arguments?", "[dcl.init.list]/3.7")
-            LINK_TO_ILL_FORMED(list_class_is_narrowing, [label="Yes"])
-            LINK_TO_DONE(list_class_is_narrowing, [label="No"])
+            YN_QUESTION_NODE(list_final_singleton_is_dest_ref, "Is T a reference type?", "[dcl.init.list]/3.9", list_final_singleton_is_dest_ref_related, list_final_singleton_type)
+            YN_QUESTION_NODE(list_final_singleton_is_dest_ref_related, "Is the T's referenced type reference-related to E?", "[dcl.init.list]/3.9", list_final_singleton_type, list_ref_prvalue_is_ref)
 
-        YN_QUESTION_NODE(list_is_enum, "Is the type an enumeration?", "[dcl.init.list]/3.8", list_enum_is_fixed, list_final_is_singleton)
+            QUESTION_NODE(list_final_singleton_type, "What is the type of initialization?", "[dcl.init.list]/3.9")
+                list_final_singleton_type -> list_final_singleton_direct [label="direct-list-initialization"]
+                list_final_singleton_type -> list_final_singleton_copy [label="copy-list-initialization"]
 
-        YN_QUESTION_NODE(list_enum_is_fixed, "Does the enumeration have fixed underlying type?", "[dcl.init.list]/3.8", list_enum_underlying_defn, list_final_is_singleton)
+            INSTRUCTION_NODE(list_final_singleton_direct, "Direct-initialize the destination from the element.", "[dcl.init.list]/3.9")
+            -> NEW_RECURSE()
+            -> list_final_singleton_is_narrowing
 
-        INSTRUCTION_NODE(list_enum_underlying_defn, "Let U be the underlying type.", "[dcl.init.list]/3.8")
-            list_enum_underlying_defn -> list_enum_is_singleton
+            INSTRUCTION_NODE(list_final_singleton_copy, "Copy-initialize the destination from the element.", "[dcl.init.list]/3.9")
+            -> NEW_RECURSE()
+            -> list_final_singleton_is_narrowing
 
-        YN_QUESTION_NODE(list_enum_is_singleton, "Does the initializer list have a single element?", "[dcl.init.list]/3.8", list_enum_elem_defn, list_final_is_singleton)
+            YN_QUESTION_NODE(list_final_singleton_is_narrowing, "Is a narrowing conversion required to convert the element to the destination type?", "[dcl.init.list]/3.9", NEW_ILL_FORMED(), NEW_DONE())
+        }
 
-        INSTRUCTION_NODE(list_enum_elem_defn, "Let v be that element.", "[dcl.init.list]/3.8")
-            list_enum_elem_defn -> list_enum_is_convertible
+        // 3.10
+        {
+            YN_QUESTION_NODE(list_ref_prvalue_is_ref, "Is T a reference type?", "[dcl.init.list]/3.10", list_ref_prvalue_prvalue_generated, list_final_is_empty)
 
-        YN_QUESTION_NODE(list_enum_is_convertible, "Can v be implicitly converted to U?", "[dcl.init.list]/3.8", list_enum_is_direct, list_final_is_singleton)
+            INSTRUCTION_NODE(list_ref_prvalue_prvalue_generated, "Generate a prvalue.", "[dcl.init.list]/3.10")
+            -> list_ref_prvalue_type_is_unknown_bound
 
-        YN_QUESTION_NODE(list_enum_is_direct, "Is the initialization direct-list-initialization?", "[dcl.init.list]/3.8", list_enum_is_narrowing, list_final_is_singleton)
+            YN_QUESTION_NODE(list_ref_prvalue_type_is_unknown_bound, "Is the destination type \"referencce to array of unknown bound of U\"?", "[dcl.init.list]/3.10", list_ref_prvalue_type_unknown_bound, list_ref_prvalue_type_normal)
 
-        YN_QUESTION_NODE(list_enum_is_narrowing, "Is a narrowing conversion required to convert v to U?", "[dcl.init.list]/3.8", list_enum_narrowing_ill_formed, list_enum_initialization)
+            INSTRUCTION_NODE(list_ref_prvalue_type_normal, "The type of the prvalue is the type referenced by the destination type.", "[dcl.init.list]/3.10")
+            -> list_ref_prvalue_init_prvalue
 
-        INSTRUCTION_NODE(list_enum_initialization, "The object is initialized with the value T(u).")
-            LINK_TO_DONE(list_enum_initialization)
+            INSTRUCTION_NODE(list_ref_prvalue_type_unknown_bound, "The type of the prvalue is the type of x in U x[] H, where H is the initializer list.", "[dcl.init.list]/3.10")
+            -> list_ref_prvalue_init_prvalue
 
-        ILL_FORMED_NODE(list_enum_narrowing_ill_formed)
+            INSTRUCTION_NODE(list_ref_prvalue_init_prvalue, "The prvalue initializes its result object by copy-list-initialization.", "[dcl.init.list]/3.10")
+            -> NEW_RECURSE()
+            -> INSTRUCTION_NODE(list_ref_prvalue_init_ref, "The reference is direct-initialized by the prvalue.", "[dcl.init.list]/3.10")
+            -> NEW_RECURSE()
+        }
 
-        // Final just because I couldn't come up with a better name for it. "Final" as in "last".
+        // 3.11
+        {
+            // Final, again, as in "last".
+            YN_QUESTION_NODE(list_final_is_empty, "Is the initializer list empty?", "[dcl.init.list]/3.11", list_final_empty_value_init, list_nothing_else_ill_formed)
 
-        YN_QUESTION_NODE(list_final_is_singleton, "Does the initializer list have a single element?", "[dcl.init.list]/3.9", list_final_singleton_type_defn, list_ref_prvalue_is_ref)
-
-        INSTRUCTION_NODE(list_final_singleton_type_defn, "Let E be the type of that element.", "[dcl.init.list]/3.9")
-            list_final_singleton_type_defn -> list_final_singleton_is_dest_ref
-
-        YN_QUESTION_NODE(list_final_singleton_is_dest_ref, "Is the destination type a reference?", "[dcl.init.list]/3.9", list_final_singleton_is_dest_ref_related, list_final_singleton_type)
-
-        YN_QUESTION_NODE(list_final_singleton_is_dest_ref_related, "Is the destination type's referenced type reference-related to E?", "[dcl.init.list]/3.9", list_final_singleton_type, list_ref_prvalue_is_ref)
-
-        QUESTION_NODE(list_final_singleton_type, "What is the type of initialization?", "[dcl.init.list]/3.9")
-            list_final_singleton_type -> list_final_singleton_direct [label="direct-list-initialization"]
-            list_final_singleton_type -> list_final_singleton_copy [label="copy-list-initialization"]
-
-        INSTRUCTION_NODE(list_final_singleton_direct, "The destination is initialized by direct-initialization from the element.", "[dcl.init.list]/3.9")
-            list_final_singleton_direct -> list_final_singleton_is_narrowing
-
-        INSTRUCTION_NODE(list_final_singleton_copy, "The destination is initialized by copy-initialization from the element.", "[dcl.init.list]/3.9")
-            list_final_singleton_copy -> list_final_singleton_is_narrowing
-
-        QUESTION_NODE(list_final_singleton_is_narrowing, "Is a narrowing conversion required to convert the element to the destination type?", "[dcl.init.list]/3.9")
-            LINK_TO_ILL_FORMED(list_final_singleton_is_narrowing, [label="Yes"])
-            LINK_TO_DONE(list_final_singleton_is_narrowing, [label="No"])
-
-        YN_QUESTION_NODE(list_ref_prvalue_is_ref, "Is the destination type a reference type?", "[dcl.init.list]/3.10", list_ref_prvalue_prvalue_generated, list_final_is_empty)
-
-        INSTRUCTION_NODE(list_ref_prvalue_prvalue_generated, "A prvalue is generated.", "[dcl.init.list]/3.10")
-            list_ref_prvalue_prvalue_generated -> list_ref_prvalue_type_is_unknown_bound
-
-        YN_QUESTION_NODE(list_ref_prvalue_type_is_unknown_bound, "Is the destination type an array of unknown bound?", "[dcl.init.list]/3.10", list_ref_prvalue_type_unknown_bound, list_ref_prvalue_type_normal)
-
-        INSTRUCTION_NODE(list_ref_prvalue_type_normal, "The type of the prvalue is the type referenced by the destination type.", "[dcl.init.list]/3.10")
-            list_ref_prvalue_type_normal -> list_ref_prvalue_init_prvalue
-
-        INSTRUCTION_NODE(list_ref_prvalue_type_unknown_bound, "The type of the prvalue is the type of x in U x[] H, where H is the initializer list.", "[dcl.init.list]/3.10")
-            list_ref_prvalue_type_unknown_bound -> list_ref_prvalue_init_prvalue
-
-        INSTRUCTION_NODE(list_ref_prvalue_init_prvalue, "The prvalue initializes a result object by copy-list-initialization.", "[dcl.init.list]/3.10")
-            list_ref_prvalue_init_prvalue -> list_ref_prvalue_init_ref
-
-        INSTRUCTION_NODE(list_ref_prvalue_init_ref, "The reference is direct-initialized by the prvalue.", "[dcl.init.list]/3.10")
-            LINK_TO_DONE(list_ref_prvalue_init_ref)
-
-        // Final, again, as in "last".
-        YN_QUESTION_NODE(list_final_is_empty, "Is the initializer list empty?", "[dcl.init.list]/3.11", list_final_empty_value_init, list_nothing_else_ill_formed)
-
-        INSTRUCTION_NODE(list_final_empty_value_init, "The object is value-initialized.", "[dcl.init.list]/3.12")
-            LINK_TO_DONE(list_final_empty_value_init)
+            INST_VALUE_INIT(list_final_empty_value_init, "[dcl.init.list]/3.12")
+        }
 
         ILL_FORMED_NODE(list_nothing_else_ill_formed)
 
     }
 
+    // [dcl.init.aggr]
     subgraph cluster_aggregate_initialization {
-        INSTRUCTION_NODE(aggregate_initialization_head, "Aggregate initialization", "[dcl.init.aggr]")
-            aggregate_initialization_head -> aggregate_determine_elements
+        // 2
+        {
+            INSTRUCTION_NODE(aggregate_initialization_head, "Aggregate initialization", "[dcl.init.aggr]")
+            -> INSTRUCTION_NODE(aggregate_determine_elements, "Determine the elements of the aggregate.", "[dcl.init.aggr]/2")
+            -> aggregate_elements_type
 
-        INSTRUCTION_NODE(aggregate_determine_elements, "Determine the elements of the aggregate.", "[dcl.init.aggr]/2")
-            aggregate_determine_elements -> aggregate_elements_type
+            QUESTION_NODE(aggregate_elements_type, "What is the type of the aggregate?", "[dcl.init.aggr]/2")
+                aggregate_elements_type -> aggregate_elements_array [label="an array type"]
+                aggregate_elements_type -> aggregate_elements_class [label="a class type"]
 
-        QUESTION_NODE(aggregate_elements_type, "What is the type of the aggregate?", "[dcl.init.aggr]/2")
-            aggregate_elements_type -> aggregate_elements_array [label="an array type"]
-            aggregate_elements_type -> aggregate_elements_class [label="a class type"]
+            INSTRUCTION_NODE(aggregate_elements_array, "The elements are the array elements in increasing subscript order.", "[dcl.init.aggr]/2.1")
+                aggregate_elements_array -> aggregate_determine_explicit_init_elems
 
-        INSTRUCTION_NODE(aggregate_elements_array, "The elements are the array elements in increasing subscript order.", "[dcl.init.aggr]/2.1")
-            aggregate_elements_array -> aggregate_determine_explicit_init_elems
+            INSTRUCTION_NODE(aggregate_elements_class, "The elements are the direct base classes in declaration order, followed by the direct non-static data members that are not members of an anonymous union, in declaration order.", "[dcl.init.aggr]/2.2")
+                aggregate_elements_class -> aggregate_determine_explicit_init_elems
+        }
 
-        INSTRUCTION_NODE(aggregate_elements_class, "The elements are the direct base classes in declaration order, followed by the direct non-static data members that are not members of an anonymous union, in declaration order.", "[dcl.init.aggr]/2.2")
-            aggregate_elements_class -> aggregate_determine_explicit_init_elems
+        // 3
+        {
+            INSTRUCTION_NODE(aggregate_determine_explicit_init_elems, "Determine the explicitly initialized elements", "[dcl.init.aggr]/3")
+            -> aggregate_explicit_is_designated
 
-        INSTRUCTION_NODE(aggregate_determine_explicit_init_elems, "Determine the explicitly initialized elements", "[dcl.init.aggr]/3")
-            aggregate_determine_explicit_init_elems -> aggregate_explicit_is_designated
+            // 3.1
+            {
+                YN_QUESTION_NODE(aggregate_explicit_is_designated, "Is the initializer list a brace-enclosed designated-initializer-list?", "[dcl.init.aggr]/3.1", aggregate_explicit_desginated_is_class, aggregate_explicit_is_init_list)
 
-        YN_QUESTION_NODE(aggregate_explicit_is_designated, "Is the initializer list a designated-initializer-list?", "[dcl.init.aggr]/3.1", aggregate_explicit_desginated_is_class, aggregate_explicit_is_init_list)
+                YN_QUESTION_NODE(aggregate_explicit_desginated_is_class, "Is the aggregate of class type?", "[dcl.init.aggr]/3.1", aggregate_explicit_designated_are_designators_valid, NEW_ILL_FORMED())
+                YN_QUESTION_NODE(aggregate_explicit_designated_are_designators_valid, "Does each designator's identifier name a direct non-static data member of that class?", "[dcl.init.aggr]/3.1", aggregate_explicit_desginated, NEW_ILL_FORMED())
 
-        QUESTION_NODE(aggregate_explicit_desginated_is_class, "Is the aggregate of class type?", "[dcl.init.aggr]/3.1")
-            aggregate_explicit_desginated_is_class -> aggregate_explicit_designated_are_designators_valid [label="Yes"]
-            LINK_TO_ILL_FORMED(aggregate_explicit_desginated_is_class, [label="No"])
+                INSTRUCTION_NODE(aggregate_explicit_desginated, "The explicitly initialized elements are those named by the designator's initializers (or those that contain the named elements).", "[dcl.init.aggr]/3.1")
+                -> aggregate_explicit_is_union
+            }
 
-        QUESTION_NODE(aggregate_explicit_designated_are_designators_valid, "Does each designator's identifier name a direct non-static data member of that class?", "[dcl.init.aggr]/3.1")
-            aggregate_explicit_designated_are_designators_valid -> aggregate_explicit_desginated [label="Yes"]
-            LINK_TO_ILL_FORMED(aggregate_explicit_designated_are_designators_valid, [label="No"])
+            // 3.2
+            {
+                YN_QUESTION_NODE(aggregate_explicit_is_init_list, "Is the initializer list an brace-enclosed initializer-list?", "[dcl.init.aggr]/3.2", aggregate_explicit_init_list_defn_n, aggregate_explicit_empty)
 
-        INSTRUCTION_NODE(aggregate_explicit_desginated, "The explicitly initialized elements are those named by the designator's initializers (or those that contain the named elements)", "[dcl.init.aggr]/3.1")
-            aggregate_explicit_desginated -> aggregate_explicit_is_union
+                INSTRUCTION_NODE(aggregate_explicit_init_list_defn_n, "Let n be the number of elements in the initializer list.", "[dcl.init.aggr]/3.2")
+                -> INSTRUCTION_NODE(aggregate_explicit_init_list, "The explicitly initialized elements are the first n elements of the aggregate.", "[dcl.init.aggr]/3.2")
+                -> aggregate_explicit_is_union
+            }
 
-        YN_QUESTION_NODE(aggregate_explicit_is_init_list, "Is the initializer list an initializer-list (i.e. does it have at least one element)?", "[dcl.init.aggr]/3.2", aggregate_explicit_init_list, aggregate_explicit_empty)
+            // 3.3
+            {
+                INSTRUCTION_NODE(aggregate_explicit_empty, "The initializer list is \"{}\", and there are no explicitly initialized elements.", "[dcl.init.aggr]/3.3")
+                -> aggregate_explicit_is_union
+            }
+        }
 
-        INSTRUCTION_NODE(aggregate_explicit_init_list, "The explicitly initialized elements are the first elements of the aggregate, matching the number in the initializer list.", "[dcl.init.aggr]/3.2")
-            aggregate_explicit_init_list -> aggregate_explicit_is_union
+        // 20
+        {
+            YN_QUESTION_NODE(aggregate_explicit_is_union, "Is the aggregate a union?", "[dcl.init.aggr]/20", aggregate_explicit_list_union_is_excess_explicit_init, aggregate_initialize_explicit)
+            YN_QUESTION_NODE(aggregate_explicit_list_union_is_excess_explicit_init, "Is there more than one explicitly initialized element?", "[dcl.init.aggr]/20", NEW_ILL_FORMED(), aggregate_initialize_explicit)
+        }
 
-        YN_QUESTION_NODE(aggregate_explicit_is_union, "Is the aggregate a union?", "[dcl.init.aggr]/19", aggregate_explicit_list_union_is_excess_explicit_init, aggregate_initialize_explicit)
+        // 4
+        {
+            INSTRUCTION_NODE(aggregate_initialize_explicit, "The explicitly initialized elements are initialized as follows:", "[dcl.init.aggr]/4")
+            -> INSTRUCTION_NODE(aggregate_initialize_explicit_foreach, "For each explicitly initialized element...", "[dcl.init.aggr]/4")
+            -> aggregate_initialize_explicit_is_anon_union
 
-        QUESTION_NODE(aggregate_explicit_list_union_is_excess_explicit_init, "Is there more than one explicitly initialized element?", "[dcl.init.aggr]/19")
-            LINK_TO_ILL_FORMED(aggregate_explicit_list_union_is_excess_explicit_init, [label="Yes"])
-            aggregate_explicit_list_union_is_excess_explicit_init -> aggregate_initialize_explicit [label="No"]
+            // 4.1
+            {
+                YN_QUESTION_NODE(aggregate_initialize_explicit_is_anon_union, "Is the element an anonymous union member?", "[dcl.init.aggr]/4.1", aggregate_initialize_explicit_union_is_designated, aggregate_initialize_explicit_copy_kind)
+                YN_QUESTION_NODE(aggregate_initialize_explicit_union_is_designated, "Is the initializer list a brace-enclosed designated-iniitializer-list?", "[dcl.init.aggr]/4.1", aggregate_initialize_explicit_union_is_duplicate_designator, aggregate_initialize_explicit_copy_kind)
 
-        INSTRUCTION_NODE(aggregate_explicit_empty, "The initializer list is \"{}\", and there are no explicitly initialized elements.", "[dcl.init.aggr]/3.3")
-            aggregate_explicit_empty -> aggregate_explicit_is_union
+                YN_QUESTION_NODE(aggregate_initialize_explicit_union_is_duplicate_designator, "Is there more than one designator that names a member of that anonymous union member?", "[dcl.init.aggr]/4.1", NEW_ILL_FORMED(), aggregate_initialization_explicit_union_defn_d)
 
-        INSTRUCTION_NODE(aggregate_initialize_explicit, "The explicitly initialized elements are initialized as follows:", "[dcl.init.aggr]/4")
-            aggregate_initialize_explicit -> aggregate_initialize_explicit_foreach
+                INSTRUCTION_NODE(aggregate_initialization_explicit_union_defn_d, "Let D be the designated-initializer-clause naming a member of the anonymous union member.", "[dcl.init.aggr]/4.1")
+                -> INSTRUCTION_NODE(aggregate_initialize_explicit_union_init, "Initialize the element with the braced-init-list { D }.")
+                -> NEW_RECURSE()
+                -> aggregate_initialize_explicit_repeat_next
+            }
 
-        INSTRUCTION_NODE(aggregate_initialize_explicit_foreach, "For each explicitly initialized element...", "[dcl.init.aggr]/4")
-            aggregate_initialize_explicit_foreach -> aggregate_initialize_explicit_is_anon_union
+            // 4.2
+            {
+                QUESTION_NODE(aggregate_initialize_explicit_copy_kind, "What is the kind of brace initializer?", "[dcl.init.aggr]/4.2")
+                    aggregate_initialize_explicit_copy_kind -> aggregate_initialize_explicit_copy_init_list [label="initializer-list"]
+                    aggregate_initialize_explicit_copy_kind -> aggregate_initialize_explicit_copy_designated [label="designated-initializer-list"]
 
-        YN_QUESTION_NODE(aggregate_initialize_explicit_is_anon_union, "Is the element an anonymous union object?", "[dcl.init.aggr]/4.1", aggregate_initialize_explicit_union_is_designated, aggregate_initialize_explicit_copy_kind)
+                INSTRUCTION_NODE(aggregate_initialize_explicit_copy_init_list, "Copy-initialize the element from the corresponding initializer-clause.", "[dcl.init.aggr]/4.2")
+                -> NEW_RECURSE()
+                -> aggregate_initialize_explicit_is_narrowing_checked
 
-        YN_QUESTION_NODE(aggregate_initialize_explicit_union_is_designated, "Is the initializer-list a designated-iniitializer-list?", "[dcl.init.aggr]/4.1", aggregate_initialize_explicit_union_is_duplicate_designator, aggregate_initialize_explicit_copy_kind)
+                INSTRUCTION_NODE(aggregate_initialize_explicit_copy_designated, "Initialize the element with the brace-or-equal-initializer of the corresponding designated-initializer-clause.", "[dcl.init.aggr]/4.2")
+                -> NEW_RECURSE()
+                -> aggregate_initialize_explicit_is_narrowing_checked
 
-        QUESTION_NODE(aggregate_initialize_explicit_union_is_duplicate_designator, "Is there more than one designator that names a member of that anonymous union?", "[dcl.init.aggr]/4.1")
-            LINK_TO_ILL_FORMED(aggregate_initialize_explicit_union_is_duplicate_designator, [label="Yes"])
-            aggregate_initialize_explicit_union_is_duplicate_designator -> aggregate_initialize_explicit_union_init [label="No"]
+                YN_QUESTION_NODE(aggregate_initialize_explicit_is_narrowing_checked, "Is the initializer of the form \"assignment-expression\" or \"= assignment-expression\"?", "[dcl.init.aggr]/4.2", aggregate_initialize_explicit_is_narrowing, aggregate_initialize_explicit_repeat_next)
+                YN_QUESTION_NODE(aggregate_initialize_explicit_is_narrowing, "Is a narrowing conversion required to convert the expression?", "[dcl.init.aggr]/4.2", NEW_ILL_FORMED(), aggregate_initialize_explicit_repeat_next)
+            }
 
-        INSTRUCTION_NODE(aggregate_initialize_explicit_union_init, "The anonymous union object is initialized by { D }, where D is the designated-initializer-clause naming a member of the anonymous union object.")
-            aggregate_initialize_explicit_union_init -> aggregate_initialize_explicit_repeat_next
+            INSTRUCTION_NODE(aggregate_initialize_explicit_repeat_next, "Repeat with the next explicitly initialized element.")
+            -> aggregate_initialize_nonexplicit_is_union [label="Once done with all explicitly initialized elements"]
 
-        QUESTION_NODE(aggregate_initialize_explicit_copy_kind, "What is the kind of brace initializer?", "[dcl.init.aggr]/4.2")
-            aggregate_initialize_explicit_copy_kind -> aggregate_initialize_explicit_copy_init_list [label="initializer-list"]
-            aggregate_initialize_explicit_copy_kind -> aggregate_initialize_explicit_copy_designated [label="designated-initializer-list"]
+            LOOP_BACKEDGE(aggregate_initialize_explicit_repeat_next, aggregate_initialize_explicit_foreach)
+        }
 
-        INSTRUCTION_NODE(aggregate_initialize_explicit_copy_init_list, "The element is copy-initialized from the corresponding initializer-clause.", "[dcl.init.aggr]/4.2")
-            aggregate_initialize_explicit_copy_init_list -> aggregate_initialize_explicit_is_narrowing_checked
+        // 5
+        {
+            YN_QUESTION_NODE(aggregate_initialize_nonexplicit_is_union, "Is the aggregate a union?", "[dcl.init.aggr]/5", aggregate_initialize_nonexplicit_union_is_list_empty, aggregate_initialize_nonexplicit_nonunion)
 
-        INSTRUCTION_NODE(aggregate_initialize_explicit_copy_designated, "The element is initialized with the brace-or-equal initializer of the corresponding designated-initializer-clause.", "[dcl.init.aggr]/4.2")
-            aggregate_initialize_explicit_copy_designated -> aggregate_initialize_explicit_is_narrowing_checked
+            INSTRUCTION_NODE(aggregate_initialize_nonexplicit_nonunion, "For each non-explicitly-initialized element:", "[dcl.init.aggr]/5")
+                aggregate_initialize_nonexplicit_nonunion -> aggregate_initialize_nonexplicit_nonunion_has_dflt_mem_init
 
-        YN_QUESTION_NODE(aggregate_initialize_explicit_is_narrowing_checked, "Is the initializer of the form \"assignment-expression\" or \"= assignment-expression\"?", "[dcl.init.aggr]/4.2", aggregate_initialize_explicit_is_narrowing, aggregate_initialize_explicit_repeat_next)
+            // 5.1
+            {
+                YN_QUESTION_NODE(aggregate_initialize_nonexplicit_nonunion_has_dflt_mem_init, "Does the element have a default member initializer?", "[dcl.init.aggr]/5.1", aggregate_initialize_nonexplicit_nonunion_dflt_mem_init, aggregate_initialize_nonexplicit_nonunion_is_reference)
 
-        QUESTION_NODE(aggregate_initialize_explicit_is_narrowing, "Is a narrowing conversion required to convert the expression?", "[dcl.init.aggr]/4.2")
-            LINK_TO_ILL_FORMED(aggregate_initialize_explicit_is_narrowing, [label="Yes"])
-            aggregate_initialize_explicit_is_narrowing -> aggregate_initialize_explicit_repeat_next [label="No"]
+                INSTRUCTION_NODE(aggregate_initialize_nonexplicit_nonunion_dflt_mem_init, "The element is initialized from that initializer.", "[dcl.init.aggr]/5.1")
+                -> NEW_RECURSE()
+                -> aggregate_initialize_nonexplicit_nonunion_repeat_next
+            }
 
-        INSTRUCTION_NODE(aggregate_initialize_explicit_repeat_next, "Repeat with the next explicitly initialized element.")
-            aggregate_initialize_explicit_repeat_next -> aggregate_initialize_nonexplicit_is_union [label="Once done with all explicitly initialized elements"]
+            // 5.2
+            {
+                YN_QUESTION_NODE(aggregate_initialize_nonexplicit_nonunion_is_reference, "Is the element a reference?", "[dcl.init.aggr]/5.2", NEW_ILL_FORMED(), aggregate_initialize_nonexplicit_nonunion_copy_init)
 
-        YN_QUESTION_NODE(aggregate_initialize_nonexplicit_is_union, "Is the aggregate a union?", "[dcl.init.aggr]/5", aggregate_initialize_nonexplicit_union_is_list_empty, aggregate_initialize_nonexplicit_nonunion)
+                INSTRUCTION_NODE(aggregate_initialize_nonexplicit_nonunion_copy_init, "The element is copy-initialized from an empty initializer list.", "[dcl.init.aggr]/5.2")
+                -> NEW_RECURSE()
+                -> aggregate_initialize_nonexplicit_nonunion_repeat_next
+            }
 
-        INSTRUCTION_NODE(aggregate_initialize_nonexplicit_nonunion, "For each non-explicitly-initialized element:", "[dcl.init.aggr]/5")
-            aggregate_initialize_nonexplicit_nonunion -> aggregate_initialize_nonexplicit_nonunion_has_dflt_mem_init
+            INSTRUCTION_NODE(aggregate_initialize_nonexplicit_nonunion_repeat_next, "Repeat with the next non-explicitly-initialized element.")
+            -> NEW_DONE() [label="Once done with all explicitly initialized elements"]
 
-        YN_QUESTION_NODE(aggregate_initialize_nonexplicit_nonunion_has_dflt_mem_init, "Does the element have a default member initializer?", "[dcl.init.aggr]/5.1", aggregate_initialize_nonexplicit_nonunion_dflt_mem_init, aggregate_initialize_nonexplicit_nonunion_is_reference)
+            LOOP_BACKEDGE(aggregate_initialize_nonexplicit_nonunion_repeat_next, aggregate_initialize_nonexplicit_nonunion)
 
-        INSTRUCTION_NODE(aggregate_initialize_nonexplicit_nonunion_dflt_mem_init, "The element is initialized from that initializer.", "[dcl.init.aggr]/5.1")
-            aggregate_initialize_nonexplicit_nonunion_dflt_mem_init -> aggregate_initialize_nonexplicit_nonunion_repeat_next
+            QUESTION_NODE(aggregate_initialize_nonexplicit_union_is_list_empty, "Is the initializer list empty?", "[dcl.init.aggr]/5")
+                aggregate_initialize_nonexplicit_union_is_list_empty -> aggregate_initialize_nonexplicit_union_empty_has_dflt [label="Yes"]
+                LINK_TO_DONE(aggregate_initialize_nonexplicit_union_is_list_empty, [label="No"])
 
-        QUESTION_NODE(aggregate_initialize_nonexplicit_nonunion_is_reference, "Is the element a reference?", "[dcl.init.aggr]/5.2")
-            aggregate_initialize_nonexplicit_nonunion_is_reference -> aggregate_initialize_nonexplicit_nonunion_copy_init [label="No"]
-            LINK_TO_ILL_FORMED(aggregate_initialize_nonexplicit_nonunion_is_reference, [label="Yes"])
+            // 5.3
+            {
+                YN_QUESTION_NODE(aggregate_initialize_nonexplicit_union_empty_has_dflt, "Does any variant member of the union have a default member initializer?", "[dcl.init.aggr]/5.4", aggregate_initialize_nonexplicit_union_dflt_mem, aggregate_initialize_nonexplicit_union_first_mem)
 
-        INSTRUCTION_NODE(aggregate_initialize_nonexplicit_nonunion_copy_init, "The element is copy-initialized from an empty initializer list.", "[dcl.init.aggr]/5.2")
-            aggregate_initialize_nonexplicit_nonunion_copy_init -> aggregate_initialize_nonexplicit_nonunion_repeat_next
+                INSTRUCTION_NODE(aggregate_initialize_nonexplicit_union_dflt_mem, "That member is initialized from its default member initializer.", "[dcl.init.aggr]/5.4")
+                -> NEW_RECURSE()
+                -> NEW_DONE()
+            }
 
-        INSTRUCTION_NODE(aggregate_initialize_nonexplicit_nonunion_repeat_next, "Repeat with the next non-explicitly-initialized element.")
-            LINK_TO_DONE(aggregate_initialize_nonexplicit_nonunion_repeat_next, [label="Once done with all explicitly initialized elements"])
-
-        QUESTION_NODE(aggregate_initialize_nonexplicit_union_is_list_empty, "Is the initializer list empty?", "[dcl.init.aggr]/5")
-            aggregate_initialize_nonexplicit_union_is_list_empty -> aggregate_initialize_nonexplicit_union_empty_has_dflt [label="Yes"]
-            LINK_TO_DONE(aggregate_initialize_nonexplicit_union_is_list_empty, [label="No"])
-
-        YN_QUESTION_NODE(aggregate_initialize_nonexplicit_union_empty_has_dflt, "Does any variant member of the union have a default member initializer?", "[dcl.init.aggr]/5.4", aggregate_initialize_nonexplicit_union_dflt_mem, aggregate_initialize_nonexplicit_union_first_mem)
-
-        INSTRUCTION_NODE(aggregate_initialize_nonexplicit_union_dflt_mem, "That member is initialized from its default member initializer.", "[dcl.init.aggr]/5.4")
-            LINK_TO_DONE(aggregate_initialize_nonexplicit_union_dflt_mem)
-
-        INSTRUCTION_NODE(aggregate_initialize_nonexplicit_union_first_mem, "The first member of the union (if any) is copy-initialized from an empty initializer list.", "[dcl.init.aggr]/5.5")
-            LINK_TO_DONE(aggregate_initialize_nonexplicit_union_first_mem)
+            // 5.4
+            {
+                INSTRUCTION_NODE(aggregate_initialize_nonexplicit_union_first_mem, "The first member of the union (if any) is copy-initialized from an empty initializer list.", "[dcl.init.aggr]/5.5")
+                -> NEW_RECURSE()
+                -> NEW_DONE()
+            }
+        }
     }
 }

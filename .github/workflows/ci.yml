@@ -21,6 +21,8 @@ jobs:
 
       - name: "Generate C++20 flowcharts"
         run: |
+          set -eu -o pipefail
+
           out='generation/gh-pages/std-2020'
           mkdir -- "$out"
 
@@ -29,11 +31,13 @@ jobs:
 
       - name: "Generate C++23 flowcharts"
         run: |
+          set -eu -o pipefail
+
           out='generation/gh-pages/std-2023'
           mkdir -- "$out"
 
-          cat cpp23/flowchart.dot.cpp | gcc -E - | dot -Tsvg -start=1000 > "$out"/initialization.svg
-          cat cpp23/flowchart.dot.cpp | gcc -E - | dot -Tpng -start=1000 > "$out"/initialization.png
+          (cd cpp23; cat flowchart.dot.cpp | gcc -E -) | dot -Tsvg -start=1000 > "$out"/initialization.svg
+          (cd cpp23; cat flowchart.dot.cpp | gcc -E -) | dot -Tpng -start=1000 > "$out"/initialization.png
 
       - name: Deploy generated flowcharts to Github Pages
         if: github.ref == 'refs/heads/main'

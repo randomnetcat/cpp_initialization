@@ -43,4 +43,4 @@
 
 #define INIT_AS_FOLLOWS(id, ...) { INSTRUCTION_NODE(id, "Initialize the object as follows:", __VA_ARGS__); }
 
-#define LOOP_BACKEDGE(source, loop_header) { source -> loop_header [style="dashed", constraint="true"]; }
+#define LOOP_BACKEDGE(source, loop_header) { source -> loop_header [style="dashed"]; }

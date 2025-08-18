@@ -49,7 +49,7 @@ subgraph list_initialization {
 	// 3.3
 	{
 		YN_QUESTION_NODE(list_is_type_char_array, "Is T a character array?", "[dcl.init.list]/3.3", list_char_array_is_singleton, list_is_aggregate)
-		YN_QUESTION_NODE(list_char_array_is_singleton, "Does the iniitializer list have a single element?", "[dcl.init.list/]3.3", list_char_array_singleton_is_typed, list_is_aggregate)
+		YN_QUESTION_NODE(list_char_array_is_singleton, "Does the initializer list have a single element?", "[dcl.init.list/]3.3", list_char_array_singleton_is_typed, list_is_aggregate)
 		YN_QUESTION_NODE(list_char_array_singleton_is_typed, "Is that element an appropriately-typed string-literal?", "[dcl.init.list]/3.3", list_char_array_string_literal_init, list_is_aggregate)
 
 		INSTRUCTION_NODE(list_char_array_string_literal_init, "Initialization as in [dcl.init.string]", "[dcl.init.list]/3.3")

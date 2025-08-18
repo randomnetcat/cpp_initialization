@@ -97,7 +97,7 @@ subgraph list_initialization {
 		YN_QUESTION_NODE(list_is_class, "Is T a class type?", "[dcl.init.list]/3.7", list_class_enumerate_ctors, list_is_enum)
 
 		INSTRUCTION_NODE(list_class_enumerate_ctors, "Enumerate the applicable constructors.", "[dcl.init.list]/3.7")
-		-> INSTRUCTION_NODE(list_class_select_ctor, "Select the best match is selected through overload resolution (applying the special rules in [over.match.list]).", "[dcl.init.list]/3.7")
+		-> INSTRUCTION_NODE(list_class_select_ctor, "Select the best match selected through overload resolution (applying the special rules in [over.match.list]).", "[dcl.init.list]/3.7")
 		-> list_class_is_narrowing
 
 		YN_QUESTION_NODE(list_class_is_narrowing, "Is a narrowing conversion required to convert any of the arguments?", "[dcl.init.list]/3.7", NEW_ILL_FORMED(), NEW_DONE())

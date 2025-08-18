@@ -74,7 +74,7 @@ subgraph cluster_reference_initialization {
 
 		INSTRUCTION_NODE(reference_rval_conv_prval_t4_defn, "Let the prvalue have type \"T4\".", "[dcl.init.ref]/5.3")
 		-> INSTRUCTION_NODE(reference_rval_conv_prval_adjust_type, "Adjust the prvalue's type to \"cv1 T4\".")
-		-> INSTRUCTION_NODE(reference_rval_conv_prval_materialize, "The prvalue is materialized.", "[dcl.init.ref]/5.3")
+		-> INSTRUCTION_NODE(reference_rval_conv_prval_materialize, "Apply the temporary materialization conversion to the prvalue.", "[dcl.init.ref]/5.3")
 		-> reference_rval_conv_bind_glval
 
 		INSTRUCTION_NODE(reference_rval_conv_bind_glval, "Bind the destination reference to the resulting glvalue (or to an appropriate base class subobject).", "[dcl.init.ref]/5.3")
@@ -102,7 +102,7 @@ subgraph cluster_reference_initialization {
 		// 5.4.2
 		{
 			INSTRUCTION_NODE(reference_temp_implicit_conv, "The initializer expression is implicitly converted to a prvalue of type \"T1\".", "[dcl.init.ref]/5.4.2")
- 			-> INSTRUCTION_NODE(reference_temp_implicit_conv_materialize, "The temporary is materialized, considering the type of the prvalue to be \"cv1 T1\".", "[dcl.init.ref]/5.4.2")
+ 			-> INSTRUCTION_NODE(reference_temp_implicit_conv_materialize, "Apply the temporary materialization conversion to the prvalue, considering the type of the prvalue to be \"cv1 T1\".", "[dcl.init.ref]/5.4.2")
 			-> INSTRUCTION_NODE(reference_temp_implicit_conv_materialize_bind, "Bind reference to the result.", "[dcl.init.ref]/5.4.2")
 			-> reference_temp_implicit_conv_is_reference_related
  		}

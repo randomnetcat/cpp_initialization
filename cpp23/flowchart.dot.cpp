@@ -10,7 +10,7 @@ digraph initialization {
 	#include "reference_init.dot.cpp"
 	#include "list_init.dot.cpp"
 
-	start [label="So you want to initialize something?\n[dcl.init.general]/16\nCopyright Janet Cobb 2020, Licensed CC BY 4.0", style=filled, fillcolor=green, shape=box, color=green, fontcolor=white]
+	start [label="So you want to initialize something?\nN4950 [dcl.init.general]/16\nCopyright Janet Cobb 2025, Licensed CC BY 4.0", style=filled, fillcolor=green, shape=box, color=green, fontcolor=white]
 		start -> is_direct_braced_init_list
 
 	YN_QUESTION_NODE(is_direct_braced_init_list, "Is the initializer a non-parenthesized braced-init-list?", "[dcl.init.general]/16.1", list_initialization_head, is_copy_braced_init_list)

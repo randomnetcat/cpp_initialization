@@ -103,7 +103,7 @@ subgraph cluster_reference_initialization {
 		{
 			INSTRUCTION_NODE(reference_temp_implicit_conv, "The initializer expression is implicitly converted to a prvalue of type \"T1\".", "[dcl.init.ref]/5.4.2")
  			-> INSTRUCTION_NODE(reference_temp_implicit_conv_materialize, "Apply the temporary materialization conversion to the prvalue, considering the type of the prvalue to be \"cv1 T1\".", "[dcl.init.ref]/5.4.2")
-			-> INSTRUCTION_NODE(reference_temp_implicit_conv_materialize_bind, "Bind reference to the result.", "[dcl.init.ref]/5.4.2")
+			-> INSTRUCTION_NODE(reference_temp_implicit_conv_materialize_bind, "Bind the reference to the result.", "[dcl.init.ref]/5.4.2")
 			-> reference_temp_implicit_conv_is_reference_related
  		}
 

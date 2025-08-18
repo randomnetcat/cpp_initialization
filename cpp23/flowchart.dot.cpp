@@ -87,7 +87,7 @@ digraph initialization {
 		YN_QUESTION_NODE(class_is_copy_init, "Is the initialization copy-initialization?", "[dcl.init.general]/16.6.2", class_is_copy_init_same_class, class_is_direct_init)
 
 		YN_QUESTION_NODE(class_is_copy_init_same_class, "Is the cv-unqualified version of the source type the same class as the class of the destination?", "[dcl.init.general]/16.6.2", class_consider_constructors, class_is_copy_init_derived_class)
-		YN_QUESTION_NODE(class_is_copy_init_derived_class, "Is the cv-unqualified version of the source type a derived class of the destination type?", "[dcl.init.general]/16.6.2", class_consider_constructors, class_user_defined_conv_head)
+		YN_QUESTION_NODE(class_is_copy_init_derived_class, "Is the cv-unqualified version of the source type a derived class of the class of the destination?", "[dcl.init.general]/16.6.2", class_consider_constructors, class_user_defined_conv_head)
 
 		INSTRUCTION_NODE(class_is_direct_init, "The initialization is direct-initialization.", "[dcl.init.general]/16.6.2")
 			class_is_direct_init -> class_consider_constructors
@@ -148,10 +148,7 @@ digraph initialization {
 		-> INSTRUCTION_NODE(class_source_overload_resolution, "Use overload resolution to select the best applicable conversion function.")
 		-> class_source_conversion_is_impossible
 
-		YN_QUESTION_NODE_NO_CITE(class_source_conversion_is_impossible, "Is the conversion impossible?", class_source_conversion_ill_formed, class_source_conversion_is_ambiguous)
-		YN_QUESTION_NODE_NO_CITE(class_source_conversion_is_ambiguous, "Is the conversion ambiguous?", class_source_conversion_ill_formed, class_source_initialize)
-
-		ILL_FORMED_NODE(class_source_conversion_ill_formed)
+		YN_QUESTION_NODE_NO_CITE(class_source_conversion_is_impossible, "Is the conversion ambiguous or impossible?", NEW_ILL_FORMED(), class_source_initialize)
 
 		INSTRUCTION_NODE(class_source_initialize, "Call the selected user-defined conversion to convert the initializer expression into the object being initialized.")
 		-> NEW_DONE()

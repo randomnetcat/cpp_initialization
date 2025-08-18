@@ -88,7 +88,7 @@ subgraph list_initialization {
 
 		YN_QUESTION_NODE_NO_CITE(list_initializer_list_is_narrowing, "Is a narrowing conversion required to initialize any of the elements?", NEW_ILL_FORMED(), list_initializer_list_init_object)
 
-		INSTRUCTION_NODE(list_initializer_list_init_object, "The initializer_list is constructed to refer to the materialized array.")
+		INSTRUCTION_NODE(list_initializer_list_init_object, "Construct the initializer_list to refer to the materialized array.")
 		-> NEW_DONE()
 	}
 
@@ -135,7 +135,7 @@ subgraph list_initialization {
 		-> list_final_singleton_is_dest_ref
 
 		YN_QUESTION_NODE(list_final_singleton_is_dest_ref, "Is T a reference type?", "[dcl.init.list]/3.9", list_final_singleton_is_dest_ref_related, list_final_singleton_type)
-		YN_QUESTION_NODE(list_final_singleton_is_dest_ref_related, "Is the T's referenced type reference-related to E?", "[dcl.init.list]/3.9", list_final_singleton_type, list_ref_prvalue_is_ref)
+		YN_QUESTION_NODE(list_final_singleton_is_dest_ref_related, "Is T's referenced type reference-related to E?", "[dcl.init.list]/3.9", list_final_singleton_type, list_ref_prvalue_is_ref)
 
 		QUESTION_NODE(list_final_singleton_type, "What is the type of initialization?", "[dcl.init.list]/3.9")
 			list_final_singleton_type -> list_final_singleton_direct [label="direct-list-initialization"]
@@ -159,9 +159,9 @@ subgraph list_initialization {
 		INSTRUCTION_NODE(list_ref_prvalue_prvalue_generated, "Generate a prvalue.", "[dcl.init.list]/3.10")
 		-> list_ref_prvalue_type_is_unknown_bound
 
-		YN_QUESTION_NODE(list_ref_prvalue_type_is_unknown_bound, "Is the destination type \"referencce to array of unknown bound of U\"?", "[dcl.init.list]/3.10", list_ref_prvalue_type_unknown_bound, list_ref_prvalue_type_normal)
+		YN_QUESTION_NODE(list_ref_prvalue_type_is_unknown_bound, "Is T \"reference to array of unknown bound of U\"?", "[dcl.init.list]/3.10", list_ref_prvalue_type_unknown_bound, list_ref_prvalue_type_normal)
 
-		INSTRUCTION_NODE(list_ref_prvalue_type_normal, "The type of the prvalue is the type referenced by the destination type.", "[dcl.init.list]/3.10")
+		INSTRUCTION_NODE(list_ref_prvalue_type_normal, "The type of the prvalue is the type referenced by T.", "[dcl.init.list]/3.10")
 		-> list_ref_prvalue_init_prvalue
 
 		INSTRUCTION_NODE(list_ref_prvalue_type_unknown_bound, "The type of the prvalue is the type of x in U x[] H, where H is the initializer list.", "[dcl.init.list]/3.10")

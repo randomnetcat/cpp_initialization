@@ -42,7 +42,7 @@ subgraph cluster_aggregate_initialization {
 
 		// 3.2
 		{
-			YN_QUESTION_NODE(aggregate_explicit_is_init_list, "Is the initializer list an brace-enclosed initializer-list?", "[dcl.init.aggr]/3.2", aggregate_explicit_init_list_defn_n, aggregate_explicit_empty)
+			YN_QUESTION_NODE(aggregate_explicit_is_init_list, "Is the initializer list a brace-enclosed initializer-list?", "[dcl.init.aggr]/3.2", aggregate_explicit_init_list_defn_n, aggregate_explicit_empty)
 
 			INSTRUCTION_NODE(aggregate_explicit_init_list_defn_n, "Let n be the number of elements in the initializer list.", "[dcl.init.aggr]/3.2")
 			-> INSTRUCTION_NODE(aggregate_explicit_init_list, "The explicitly initialized elements are the first n elements of the aggregate.", "[dcl.init.aggr]/3.2")
@@ -95,8 +95,8 @@ subgraph cluster_aggregate_initialization {
 			-> NEW_RECURSE_SUBOBJECT()
 			-> aggregate_initialize_explicit_is_narrowing_checked_no_eq
 
-			YN_QUESTION_NODE(aggregate_initialize_explicit_is_narrowing_checked_no_eq, "Is the initializer of the form \"assignment-expression\"?", "[dcl.init.aggr]/4.2", aggregate_initialize_explicit_is_narrowing, aggregate_initialize_explicit_is_narrowing_checked_eq)
-			YN_QUESTION_NODE(aggregate_initialize_explicit_is_narrowing_checked_eq, "Is the initializer of the form \"= assignment-expression\"?", "[dcl.init.aggr]/4.2", aggregate_initialize_explicit_is_narrowing, aggregate_initialize_explicit_repeat_next)
+			YN_QUESTION_NODE(aggregate_initialize_explicit_is_narrowing_checked_no_eq, "Is that initializer of the form \"assignment-expression\"?", "[dcl.init.aggr]/4.2", aggregate_initialize_explicit_is_narrowing, aggregate_initialize_explicit_is_narrowing_checked_eq)
+			YN_QUESTION_NODE(aggregate_initialize_explicit_is_narrowing_checked_eq, "Is that initializer of the form \"= assignment-expression\"?", "[dcl.init.aggr]/4.2", aggregate_initialize_explicit_is_narrowing, aggregate_initialize_explicit_repeat_next)
 			YN_QUESTION_NODE(aggregate_initialize_explicit_is_narrowing, "Is a narrowing conversion required to convert the expression?", "[dcl.init.aggr]/4.2", NEW_ILL_FORMED(), aggregate_initialize_explicit_repeat_next)
 		}
 

@@ -47,7 +47,7 @@ subgraph cluster_default_initialization {
 
 	// 7.1
 	{
-		YN_QUESTION_NODE(default_is_class, "Is T a (possibly cv-qualified class type)?", "[dcl.init.general]/7.1", default_class_enumerate, default_is_array)
+		YN_QUESTION_NODE(default_is_class, "Is T a (possibly cv-qualified) class type?", "[dcl.init.general]/7.1", default_class_enumerate, default_is_array)
 
 		INSTRUCTION_NODE(default_class_enumerate, "Enumerate the applicable constructors.", "[dcl.init.general]/7.1")
 		-> INSTRUCTION_NODE(default_class_select, "Select the best constructor for the initializer \"()\".", "[dcl.init.general]/7.1")

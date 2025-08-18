@@ -12,28 +12,55 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Create gh-pages directory
         run: mkdir -p generation/gh-pages
-      
+
       - name: Install dependencies
         run: sudo apt-get install m4 graphviz
-        
-      - name: Generate SVG
-        run: m4 flowchart.dot.m4 | dot -Tsvg -start=1000 > generation/gh-pages/initialization.svg
-        
-      - name: Generate PNG
-        run: m4 flowchart.dot.m4 | dot -Tpng -start=1000 > generation/gh-pages/initialization.png
-        
-      - name: Deploy generated to Github Pages
-        uses: crazy-max/ghaction-github-pages@v2.0.0
+
+      - name: "Generate C++20 flowcharts"
+        run: |
+          out='generation/gh-pages/std-2020'
+          mkdir -- "$out"
+
+          m4 cpp20/flowchart.dot.m4 | dot -Tsvg -start=1000 > "$out"/initialization.svg
+          m4 cpp20/flowchart.dot.m4 | dot -Tpng -start=1000 > "$out"/initialization.png
+
+          # Backwards compatibility with old output.
+          ln -s -- "$out/initialization.svg" generation/gh-pages/initialization.svg
+          ln -s -- "$out/initialization.png" generation/gh-pages/initialization.png
+
+      - name: "Generate C++23 flowcharts"
+        run: |
+          out='generation/gh-pages/std-2023'
+          mkdir -- "$out"
+
+          cat cpp23/flowchart.dot.cpp | gcc -E - | dot -Tsvg -start=1000 > "$out"/initialization.svg
+          cat cpp23/flowchart.dot.cpp | gcc -E - | dot -Tpng -start=1000 > "$out"/initialization.png
+
+      - name: Deploy generated flowcharts to Github Pages
         if: github.ref == 'refs/heads/main'
-        with:
-          target_branch: gh-pages
-          keep_history: true
-          allow_empty_commit: false
-          build_dir: "generation/gh-pages"
-          author: "ci-build <ci-build@randomcat.org>"
-          commit_message: "[skip ci] CI Updates"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Set Git committer identity
+          git config user.name "ci-build"
+          git config user.email "ci-build@randomcat.org"
+
+          # Clear the index
+          EMPTY_TREE="$(git hash-object -t tree /dev/null)"
+          git read-tree -- "$EMPTY_TREE"
+
+          # Add site data to index
+          git add generation/gh-pages
+
+          git fetch origin gh-pages
+          ORIG_SITE_TREE="$(git rev-parse origin/gh-pages^{tree})"
+          NEW_SITE_TREE="$(git write-tree --prefix=generation/gh-pages)"
+
+          if [ "$ORIG_SITE_TREE" != "$NEW_SITE_TREE" ]; then
+            SITE_COMMIT="$(git commit-tree -p origin/gh-pages -m "CI updates" -- "$NEW_SITE_TREE")"
+            echo Updating GitHub pages site to commit "$SITE_COMMIT"
+            git push origin "$SITE_COMMIT":gh-pages
+          else
+            echo Not updating GitHub pages site
+          fi

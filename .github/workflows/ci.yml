@@ -36,8 +36,8 @@ jobs:
           out='generation/gh-pages/std-2023'
           mkdir -- "$out"
 
-          (cd cpp23; cat flowchart.dot.cpp | gcc -E -) | dot -Tsvg -start=1000 > "$out"/initialization.svg
-          (cd cpp23; cat flowchart.dot.cpp | gcc -E -) | dot -Tpng -start=1000 > "$out"/initialization.png
+          gcc -E cpp23/flowchart.dot.cpp | dot -Tsvg -start=1000 > "$out"/initialization.svg
+          gcc -E cpp23/flowchart.dot.cpp | dot -Tpng -start=1000 > "$out"/initialization.png
 
       - name: Deploy generated flowcharts to Github Pages
         if: github.ref == 'refs/heads/main'

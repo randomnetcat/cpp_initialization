@@ -37,7 +37,7 @@ subgraph cluster_zero_initialization {
 		-> NEW_DONE()
 
 		ZERO_INIT_BACKREF({
-			zero_class_padding zero_class_members zero_class_bases zero_class_virtual_bases
+			zero_class_members zero_class_bases zero_class_virtual_bases
 		})
 
 		INSTRUCTION_NODE(zero_union_padding, "Initialize the object's padding bits to zero bits.", "[dcl.init.general]/6.3")

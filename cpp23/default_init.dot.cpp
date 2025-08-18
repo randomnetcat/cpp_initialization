@@ -35,11 +35,11 @@ subgraph cluster_default_initialization {
 	{
 		YN_QUESTION_NODE(default_is_const, "Is T const-qualified?", "[dcl.init.general]/8", default_const_is_class, default_is_class)
 
-		YN_QUESTION_NODE(default_const_is_class, "Is T a class type?", "[dcl.init.general]/8", default_const_class_is_cdc, default_const_is_class)
+		YN_QUESTION_NODE(default_const_is_class, "Is T a class type?", "[dcl.init.general]/8", default_const_class_is_cdc, default_const_is_array)
 		YN_QUESTION_NODE(default_const_class_is_cdc, "Is T const-default-constructible", "[dcl.init.general]/8", default_is_class, NEW_ILL_FORMED())
 		REFERENCES_CDC(default_const_class_is_cdc)
 
-		YN_QUESTION_NODE(default_const_is_class, "Is T an array type?", "[dcl.init.general]/8", default_const_array_element_is_class, NEW_ILL_FORMED())
+		YN_QUESTION_NODE(default_const_is_array, "Is T an array type?", "[dcl.init.general]/8", default_const_array_element_is_class, NEW_ILL_FORMED())
 		YN_QUESTION_NODE(default_const_array_element_is_class, "Is T's element type a class type?", "[dcl.init.general]/8", default_const_array_element_class_is_cdc, NEW_ILL_FORMED())
 		YN_QUESTION_NODE(default_const_array_element_class_is_cdc, "Is that class type const-default-constructible?", "[dcl.init.general]/8", default_is_class, NEW_ILL_FORMED())
 		REFERENCES_CDC(default_const_array_element_class_is_cdc)

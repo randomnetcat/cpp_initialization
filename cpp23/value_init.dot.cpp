@@ -13,7 +13,14 @@
 // [dcl.init.general]/9
 subgraph cluster_value_initialization {
 	INSTRUCTION_NODE(NODE_VALUE_INIT_HEAD, "Value-initialization", "[dcl.init.general]/9")
-	-> INSTRUCTION_NODE(value_defn_t, "Let T be the type of the object.", "[dcl.init.general]/9")
+	-> value_is_reference
+
+	// 10
+	{
+		YN_QUESTION_NODE(value_is_reference, "Is the destination a reference?", "[dcl.init.general]/10", NEW_ILL_FORMED(), value_defn_t)
+	}
+
+	INSTRUCTION_NODE(value_defn_t, "Let T be the type of the object.", "[dcl.init.general]/9")
 	-> value_is_class
 
 	// 9.1
@@ -21,8 +28,8 @@ subgraph cluster_value_initialization {
 		YN_QUESTION_NODE(value_is_class, "Is the type a (possibly cv-qualified) class type?", "[dcl.init.general]/9.1", value_class_has_default, value_is_array)
 
 		YN_QUESTION_NODE(value_class_has_default, "Does T have a default constructor?", "[dcl.init.general]/9.1", value_class_default_is_deleted, value_class_direct_default_init)
-		YN_QUESTION_NODE(value_class_default_is_deleted, "Is that default constructor deleted?", "[dcl.init.general]/9.1", value_class_direct_default_init, value_class_default_is_user_provided)
-		YN_QUESTION_NODE(value_class_default_is_user_provided, "Is that default constructor user-provided?", "[dcl.init.general]/9.1", value_class_direct_default_init, value_class_dflt_ctor_check_zero)
+		YN_QUESTION_NODE(value_class_default_is_deleted, "Does T have a default constructor that is deleted?", "[dcl.init.general]/9.1", value_class_direct_default_init, value_class_default_is_user_provided)
+		YN_QUESTION_NODE(value_class_default_is_user_provided, "Does T have a default constructor that is user-provided?", "[dcl.init.general]/9.1", value_class_direct_default_init, value_class_dflt_ctor_check_zero)
 
 		INSTRUCTION_NODE(value_class_direct_default_init, "Default-initialize the object.", "[dcl.init.general]/9.1")
 		-> NODE_DEFAULT_INIT_HEAD

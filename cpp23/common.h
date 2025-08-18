@@ -5,11 +5,15 @@
 #define ILL_FORMED_NODE(id) { id [label="The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]; }
 #define RECURSE_SUBOBJECT_NODE(id) { id [label="Partially recurse.", shape=box, style=filled, color=lightblue, fontcolor=black]}
 #define RECURSE_NODE(id) { id [label="Recurse.", shape=box, style=filled, color=blue, fontcolor=white]}
+#define YES_NODE(id, text) { id [label=text, shape=box, color=green, fontcolor=black]; }
+#define NO_NODE(id, text) { id [label=text, shape=box, color=red, fontcolor=black]; }
 
 #define NEW_DONE() { DONE_NODE(TOKEN_CAT(__local_done_, __COUNTER__)); }
 #define NEW_ILL_FORMED() { ILL_FORMED_NODE(TOKEN_CAT(__local_ill_formed_, __COUNTER__)); }
 #define NEW_RECURSE() { RECURSE_NODE(TOKEN_CAT(__local_recurse, __COUNTER__)); }
 #define NEW_RECURSE_SUBOBJECT() { RECURSE_SUBOBJECT_NODE(TOKEN_CAT(__local_recurse_subobject, __COUNTER__)); }
+#define NEW_YES(label) { YES_NODE(TOKEN_CAT(__local_yes_, __COUNTER__), label); }
+#define NEW_NO(label) { NO_NODE(TOKEN_CAT(__local_no_, __COUNTER__), label); }
 
 #define INTERNALLY_RECURSES_SUBOBJECT(id) { id -> { RECURSE_SUBOBJECT_NODE(TOKEN_CAT(id, __recurse)); } [style="dotted"]; }
 

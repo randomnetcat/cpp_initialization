@@ -1,11 +1,13 @@
 #define TOKEN_CAT_(X, Y) X##Y
 #define TOKEN_CAT(X, Y) TOKEN_CAT_(X, Y)
 
-#define DONE_NODE(id) { id [label="Done.", style=filled, fillcolor=green, shape=box, color=green, fontcolor=white]; }
+#define COLOR_GREEN "#008000"
+
+#define DONE_NODE(id) { id [label="Done.", style=filled, fillcolor=COLOR_GREEN, shape=box, color=COLOR_GREEN, fontcolor=white]; }
 #define ILL_FORMED_NODE(id) { id [label="The program is ill-formed.", shape=box, style=filled, color=red, fontcolor=white]; }
 #define RECURSE_SUBOBJECT_NODE(id) { id [label="Partially recurse.", shape=box, style=filled, color=lightblue, fontcolor=black]}
 #define RECURSE_NODE(id) { id [label="Recurse.", shape=box, style=filled, color=blue, fontcolor=white]}
-#define YES_NODE(id, text) { id [label=text, shape=box, color=green, fontcolor=black]; }
+#define YES_NODE(id, text) { id [label=text, shape=box, color=COLOR_GREEN, fontcolor=black]; }
 #define NO_NODE(id, text) { id [label=text, shape=box, color=red, fontcolor=black]; }
 
 #define NEW_DONE() { DONE_NODE(TOKEN_CAT(__local_done_, __COUNTER__)); }

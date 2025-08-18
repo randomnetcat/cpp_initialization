@@ -4,7 +4,7 @@
 #include "common.h"
 
 #define NODE_VALUE_INIT_HEAD value_initialization_head
-#define INST_VALUE_INIT(id, ...) { INSTRUCTION_NODE(id, "Value-initialize the objecct.", __VA_ARGS__); } -> NODE_VALUE_INIT_HEAD
+#define INST_VALUE_INIT(id, ...) { INSTRUCTION_NODE(id, "Value-initialize the object.", __VA_ARGS__); } -> NODE_VALUE_INIT_HEAD
 #define INTERNALLY_VALUE_INITS(id) { id -> NODE_VALUE_INIT_HEAD [style="dotted"]; }
 
 #include "default_init.dot.cpp"

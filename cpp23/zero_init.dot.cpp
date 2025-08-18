@@ -17,7 +17,7 @@ subgraph cluster_zero_initialization {
 	// 6.1
 	{
 		YN_QUESTION_NODE(zero_is_scalar, "Is T a scalar type?", "[dcl.init.general]/6.1", zero_scalar_init, zero_is_class)
-		INSTRUCTION_NODE(zero_scalar_init, "Initialized the objecct to the value obtained by converting the literal 0 to T.", "[dcl.init.general]/6.1")
+		INSTRUCTION_NODE(zero_scalar_init, "Initialized the object to the value obtained by converting the literal 0 to T.", "[dcl.init.general]/6.1")
 		-> NEW_DONE()
 	}
 

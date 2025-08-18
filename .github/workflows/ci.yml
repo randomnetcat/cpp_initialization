@@ -27,10 +27,6 @@ jobs:
           m4 cpp20/flowchart.dot.m4 | dot -Tsvg -start=1000 > "$out"/initialization.svg
           m4 cpp20/flowchart.dot.m4 | dot -Tpng -start=1000 > "$out"/initialization.png
 
-          # Backwards compatibility with old output.
-          ln -s -- "$out/initialization.svg" generation/gh-pages/initialization.svg
-          ln -s -- "$out/initialization.png" generation/gh-pages/initialization.png
-
       - name: "Generate C++23 flowcharts"
         run: |
           out='generation/gh-pages/std-2023'

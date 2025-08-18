@@ -18,7 +18,9 @@ digraph initialization {
 
 	YN_QUESTION_NODE(is_dest_reference, "Is the destination type a reference type?", "[dcl.init.general]/16.2", reference_initialization_head, is_char_arr_init_char:n)
 
-	YN_QUESTION_NODE(is_char_arr_init_char, "Is the destination type an array of characters?", "[dcl.init.general]/16.3", is_char_arr_literal_init, is_char_arr_init_char8)
+	YN_QUESTION_NODE(is_char_arr_init_char, "Is the destination type an array of char?", "[dcl.init.general]/16.3", is_char_arr_literal_init, is_char_arr_init_uchar)
+	YN_QUESTION_NODE(is_char_arr_init_uchar, "Is the destination type an array of unsigned char?", "[dcl.init.general]/16.3", is_char_arr_literal_init, is_char_arr_init_schar)
+	YN_QUESTION_NODE(is_char_arr_init_schar, "Is the destination type an array of signed char?", "[dcl.init.general]/16.3", is_char_arr_literal_init, is_char_arr_init_char8)
 	YN_QUESTION_NODE(is_char_arr_init_char8, "Is the destination type an array of char8_t?", "[dcl.init.general]/16.3", is_char_arr_literal_init, is_char_arr_init_char16)
 	YN_QUESTION_NODE(is_char_arr_init_char16, "Is the destination type an array of char16_t?", "[dcl.init.general]/16.3", is_char_arr_literal_init, is_char_arr_init_char32)
 	YN_QUESTION_NODE(is_char_arr_init_char32, "Is the destination type an array of char32_t?", "[dcl.init.general]/16.3", is_char_arr_literal_init, is_char_arr_init_wchar)
